@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>LanM Research</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to workspace</a>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="LanM Research home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 8l9-4 9 8-3 13-12 2-5-10zM7 8l15 17M16 4L10 27M5 17l20-5"/><circle cx="7" cy="8" r="3"/><circle cx="16" cy="4" r="2.4"/><circle cx="25" cy="12" r="3"/><circle cx="22" cy="25" r="3"/><circle cx="10" cy="27" r="2.4"/><circle cx="5" cy="17" r="2.4"/></svg></span>
+        <span>LanM <strong>Research</strong><small>Scientific workspace</small></span>
+      </a>
+      <div class="sidebar-heading"><span>PROJECTS</span><button id="new-project" class="icon-button" title="Create project" aria-label="Create project">+</button></div>
+      <nav id="project-list" class="project-list" aria-label="Research projects"><p class="muted small">Loading projects…</p></nav>
+      <div class="sidebar-note"><span class="eyebrow">CONNECTED SCIENCE</span><p>Evidence, assumptions, and reusable methods. Every result keeps its basis.</p></div>
+      <div class="runtime-card"><span id="runtime-dot" class="status-dot"></span><div><strong id="runtime-label">Connecting</strong><span id="runtime-description">Checking local workspace</span></div></div>
+      <div class="sidebar-footer"><span>Local workspace</span><span id="app-version"></span></div>
+    </aside>
+
+    <main id="main" class="main">
+      <div id="global-error" class="notice error global-error" role="alert" hidden></div>
+      <section id="welcome" class="welcome" hidden>
+        <div class="welcome-orbit" aria-hidden="true"><span>La</span><span>Nd</span><span>Dy</span><i>LanM</i></div>
+        <span class="eyebrow">A PLACE FOR YOUR RESEARCH</span>
+        <h1>From evidence<br>to an inspectable result.</h1>
+        <p>Create a project to explore lanmodulins, examine the evidence, and build or use a transparent economic method.</p>
+        <button id="welcome-create" class="button primary">Create a project <span aria-hidden="true">↗</span></button>
+        <div class="welcome-details"><span>Traceable evidence</span><span>Versioned methods</span><span>Saved research</span></div>
+      </section>
+
+      <div id="workspace" hidden>
+        <header class="workspace-header">
+          <div><div class="breadcrumb">Research workspace <span>/</span> <span id="project-breadcrumb">Project</span></div><h1 id="project-title"></h1><p id="project-description" class="header-description"></p></div>
+          <button id="project-settings" class="button subtle small-button">Project settings <span aria-hidden="true">↗</span></button>
+        </header>
+        <div class="project-strip"><span class="pair-badge"><strong id="project-target"></strong><span> / </span><strong id="project-competitor"></strong></span><span id="configuration-label">Project configuration</span><span class="strip-spacer"></span><span id="project-revision" class="mono"></span><span id="experiment-count"></span></div>
+        <div class="workspace-toolbar">
+          <nav class="tabs" aria-label="Workspace sections" role="tablist">
+            <button class="tab active" data-tab="research" id="tab-research" role="tab" aria-controls="panel-research" aria-selected="true">Conversation</button>
+            <button class="tab" data-tab="library" id="tab-library" role="tab" aria-controls="panel-library" aria-selected="false">Candidate library</button>
+            <button class="tab" data-tab="model" id="tab-model" role="tab" aria-controls="panel-model" aria-selected="false">Models & methods</button>
+            <button class="tab" data-tab="evidence" id="tab-evidence" role="tab" aria-controls="panel-evidence" aria-selected="false">Evidence</button>
+          </nav>
+          <div class="mode-switch" aria-label="Agent workflow; model selected separately"><button class="active" data-mode="research" aria-pressed="true" title="Discuss evidence, update project assumptions, and run existing methods using the selected model.">Research</button><button data-mode="build" aria-pressed="false" title="Create, check, and register reusable calculation tools using the selected model.">Build methods</button></div>
+        </div>
+
+        <section id="panel-research" class="tab-panel research-layout" role="tabpanel" aria-labelledby="tab-research">
+          <div class="conversation-card">
+            <div class="conversation-heading"><span class="eyebrow" id="conversation-mode-label">RESEARCH CONVERSATION</span><span id="conversation-saved" class="small muted">Saved with this project</span></div>
+            <div id="messages" class="messages" aria-live="polite" aria-relevant="additions"></div>
+            <div id="job-activity" class="job-activity" role="status" hidden><span class="working-dot"></span><span id="job-activity-text">Working…</span><button id="cancel-job" class="text-button">Stop</button></div>
+            <form id="chat-form" class="composer"><label class="sr-only" for="chat-input">Message the research agent</label><textarea id="chat-input" rows="3" maxlength="12000" placeholder="Ask about lanmodulins, examine an assumption, or explore the evidence…" required></textarea><div class="composer-footer"><div><select id="model-select" aria-label="Agent model"><option value="">Configured model</option></select><span id="composer-mode" class="composer-hint">Research with saved evidence</span></div><button id="send-message" class="button primary" type="submit">Send <span aria-hidden="true">↑</span></button></div></form>
+            <p id="runtime-notice" class="composer-disclaimer">Calculations use saved inputs and explicit method versions.</p>
+          </div>
+          <aside class="research-rail">
+            <div class="card context-card"><span class="eyebrow">PROJECT CONTEXT</span><h2>Keep the basis visible.</h2><dl id="context-summary" class="compact-dl"></dl><button class="text-button" data-go-tab="model">Inspect assumptions <span aria-hidden="true">→</span></button></div>
+            <div class="card latest-card"><span class="eyebrow">LATEST CALCULATION</span><div id="latest-summary"><p class="muted">No calculation saved yet.</p></div><button class="text-button" data-go-tab="model">Open models & methods <span aria-hidden="true">→</span></button></div>
+            <div class="card"><span class="eyebrow">TESTING HANDOFF</span><p class="literature-scope">Save 1–8 candidates with simulated stock volumes of 35–250 µL for your dilution pipeline.</p><button id="open-testing-batches" class="text-button">Saved testing batches <span aria-hidden="true">→</span></button></div>
+            <div class="research-prompts"><span class="eyebrow">START A CONVERSATION</span><button data-prompt="What evidence is available for this project, and which scientific questions remain unresolved?">Examine the evidence <span>↗</span></button><button data-prompt="Explain the current economic method, its system boundary, and which inputs are estimates rather than measurements.">Understand the model <span>↗</span></button><button data-prompt="Which measurements would most reduce uncertainty in this project's economic comparison? Explain the basis and limitations.">Explore uncertainty <span>↗</span></button></div>
+          </aside>
+        </section>
+
+        <section id="panel-library" class="tab-panel" role="tabpanel" aria-labelledby="tab-library" hidden>
+          <div class="section-heading"><div><span class="eyebrow">THE CANDIDATE LIBRARY</span><h2>Explore the evidence behind each candidate.</h2><p>Published screening observations and accepted project experiments remain distinct.</p></div><button id="add-experiment" class="button primary">Add experimental result</button></div>
+          <div class="library-controls"><div class="search-field"><span aria-hidden="true">⌕</span><input id="candidate-search" type="search" placeholder="Search candidates, organisms, accessions…" aria-label="Search candidates"></div><div class="filter-pills" aria-label="Candidate pool"><button class="active" data-pool="all" aria-pressed="true">All candidates</button><button data-pool="untested" aria-pressed="false">Untested in project</button><button data-pool="updated" aria-pressed="false">With accepted results</button></div></div>
+          <div class="card table-card"><div class="table-topline"><span id="candidate-count">Loading candidates…</span><span class="small muted">Select a row to inspect evidence</span></div><div class="table-scroll"><table class="candidate-table"><thead><tr><th>Candidate</th><th>Organism / accession</th><th>Project evidence</th><th></th></tr></thead><tbody id="candidate-rows"></tbody></table></div><div id="library-empty" class="empty-state" hidden>No candidates match this search.</div></div>
+          <div class="comparison-bar"><div><strong>Compare a complete candidate pool</strong><p>Comparisons use the full pool, independently of the search shown above.</p></div><div class="button-group"><button id="rank-untested" class="button">Compare untested</button><button id="rank-updated" class="button">Compare accepted results</button></div></div>
+          <div id="ranking-result" class="result-section" hidden></div>
+          <div id="testing-batches-section" class="section-heading history-heading"><div><span class="eyebrow">AUTOMATION HANDOFF</span><h3>Testing batches</h3><p>Saved candidates and simulated stock volumes in µL for wells A1–H1, followed by one fixed water addition per well. Each download preserves the same values.</p></div><button id="create-testing-batch" class="button">Create testing CSV</button></div>
+          <div id="testing-batch-list" class="run-list"></div>
+        </section>
+
+        <section id="panel-model" class="tab-panel" role="tabpanel" aria-labelledby="tab-model" hidden>
+          <div class="section-heading"><div><span class="eyebrow">TRANSPARENT CALCULATIONS</span><h2>Methods with an inspectable basis.</h2><p>Run a registered method or use Build methods to create a draft with the agent.</p></div><button id="build-method" class="button">Build a method <span aria-hidden="true">↗</span></button></div>
+          <div class="model-grid">
+            <div class="card assumptions-card"><div class="card-heading"><div><span class="eyebrow">PROJECT SCENARIO</span><h3>Assumptions</h3></div><span class="badge amber">Estimates unless evidenced</span></div><form id="assumptions-form"><div id="assumptions-fields"></div><label class="field revision-reason">Reason for this revision<textarea id="assumption-reason" rows="2" placeholder="Explain what changed and the basis for the change…"></textarea></label><div class="form-footer"><span class="small muted">Earlier revisions are retained.</span><button id="save-assumptions" class="button" type="submit">Save revision</button></div></form><details class="revision-history"><summary>Revision history <span id="revision-count"></span></summary><div id="revision-list"></div></details></div>
+            <div class="model-right"><div class="card calculate-card"><span class="eyebrow">RUN A CALCULATION</span><h3>Use a saved method.</h3><form id="calculate-form"><label class="field">Method<select id="calculation-method"><option value="">Default registered method</option></select></label><div id="method-inputs"></div><label id="calculation-scope-field" class="field">Calculation scope<select id="calculation-candidate"><option value="">Project scenario</option></select></label><p id="calculation-scope-note" class="small muted">Candidate-specific evidence is used only where applicable. Missing performance remains explicit.</p><button id="run-calculation" class="button primary full-width" type="submit">Calculate & save <span aria-hidden="true">→</span></button></form></div><div class="card methods-card"><div class="card-heading"><div><span class="eyebrow">REUSABLE METHODS</span><h3>Method registry</h3></div><button id="refresh-methods" class="icon-button" title="Refresh methods" aria-label="Refresh methods">↻</button></div><div id="method-list"></div></div></div>
+          </div>
+          <div id="calculation-result" class="result-section" hidden></div>
+          <div class="section-heading history-heading"><div><h3>Scale-up predictions</h3><p>Save a researcher's predicted column performance and costs for a specified scale. These remain separate from experimental results.</p></div><button id="add-scale-prediction" class="button">Add scale-up prediction</button></div><div id="scale-prediction-list" class="run-list"></div>
+          <div class="section-heading history-heading"><div><span class="eyebrow">REPRODUCIBLE OUTPUTS</span><h3>Saved runs</h3></div></div><div id="run-list" class="run-list"></div>
+        </section>
+
+        <section id="panel-evidence" class="tab-panel" role="tabpanel" aria-labelledby="tab-evidence" hidden>
+          <div class="section-heading"><div><span class="eyebrow">THE SCIENTIFIC RECORD</span><h2>Evidence you can return to.</h2><p>Archive source text and its reference. A saved source does not automatically become a measured input.</p></div><button id="add-source" class="button primary">Add source evidence</button></div>
+          <div class="evidence-toolbar"><button id="search-pubmed" class="button">Search PubMed</button><button id="open-handbook" class="button">LanM handbook</button><span class="small muted">Find literature or inspect the guidance used in research.</span></div>
+          <div id="sources-list" class="sources-grid"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="project-dialog" class="form-dialog"><form id="project-form"><div class="dialog-heading"><div><span class="eyebrow">A NEW INVESTIGATION</span><h2>Create a project</h2></div><button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button></div><label class="field">Project name<input name="name" required maxlength="120" placeholder="e.g. Nd recovery from a mixed feed"></label><div class="field-pair"><label class="field">Target REE<select name="target" id="new-target"></select></label><label class="field">Comparison REE<select name="competitor" id="new-competitor"></select></label></div><label class="field">Research question or context<textarea name="description" rows="3" maxlength="4000" placeholder="What is this project investigating?"></textarea></label><p class="small muted">The element pair defines this project. You can edit its feed, support, and assumptions after creation.</p><div class="form-error" role="alert" hidden></div><div class="dialog-footer"><button type="button" class="button" data-close-dialog>Cancel</button><button class="button primary" type="submit">Create project</button></div></form></dialog>
+
+  <dialog id="settings-dialog" class="form-dialog"><form id="settings-form"><div class="dialog-heading"><div><span class="eyebrow">PROJECT CONFIGURATION</span><h2>Research conditions</h2></div><button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button></div><label class="field">Support / immobilization configuration<input name="support" required maxlength="300" placeholder="Specify the material and immobilization format"></label><label class="field">Feed specification<input name="feed" required maxlength="500" placeholder="Specify the feedstock or solution being compared"></label><label class="field">Research context<textarea name="description" rows="3" maxlength="4000"></textarea></label><label class="field">Reason for this update<textarea name="reason" rows="2" required placeholder="Record the basis for this configuration…"></textarea></label><p class="small muted">Accepted results must match the project target, support, and feed to support a process comparison. Create another project to change the element pair.</p><div class="form-error" role="alert" hidden></div><div class="dialog-footer"><button type="button" class="button" data-close-dialog>Cancel</button><button class="button primary" type="submit">Save configuration</button></div></form></dialog>
+
+  <dialog id="experiment-dialog" class="form-dialog wide-dialog"><form id="experiment-form"><div class="dialog-heading"><div><span class="eyebrow">EXPERIMENTAL EVIDENCE</span><h2>Add a result for review</h2></div><button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button></div><div class="notice">This creates a draft. Accepting a result is a separate action after reviewing its conditions and measurements.</div><div class="field-pair"><label class="field">Candidate ID<input name="candidate_id" list="candidate-options" required placeholder="Choose or enter an existing candidate ID"><datalist id="candidate-options"></datalist></label><label class="field">Result label<input name="label" required maxlength="200" placeholder="Experiment or run identifier"></label></div><div class="field-pair"><label class="field">Support / immobilization<input name="support" required maxlength="300"></label><label class="field">Feed specification<input name="feed" required maxlength="500"></label></div><p class="small muted">Target: <strong id="experiment-target"></strong>. Enter only measured metrics. Leave unavailable measurements empty.</p><div id="experiment-metrics" class="metrics-grid"></div><label class="field">Notes and source of measurements<textarea name="notes" rows="3" placeholder="Conditions, replicates, uncertainty, and the source record…"></textarea></label><div class="form-error" role="alert" hidden></div><div class="dialog-footer"><button type="button" class="button" data-close-dialog>Cancel</button><button class="button primary" type="submit">Save draft result</button></div></form></dialog>
+
+  <dialog id="source-dialog" class="form-dialog wide-dialog"><form id="source-form"><div class="dialog-heading"><div><span class="eyebrow">ARCHIVE A SOURCE</span><h2>Add source evidence</h2></div><button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button></div><label class="field">Title<input name="title" required maxlength="300" placeholder="Paper, laboratory note, or dataset description"></label><label class="field">Reference URL <span class="optional">optional</span><input name="url" type="url" placeholder="https://…"></label><label class="field">Source text<textarea name="text" rows="10" required maxlength="250000" placeholder="Paste the relevant source text. Include experimental conditions and qualifications."></textarea></label><p class="small muted">The original text is preserved. Input claims still require interpretation and an evidence basis.</p><div class="form-error" role="alert" hidden></div><div class="dialog-footer"><button type="button" class="button" data-close-dialog>Cancel</button><button class="button primary" type="submit">Archive source</button></div></form></dialog>
+
+  <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-kicker"><div class="dialog-heading sticky-heading"><span id="detail-kicker" class="eyebrow">DETAILS</span><button class="icon-button" data-close-dialog aria-label="Close details">×</button></div><div id="detail-content"></div></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>

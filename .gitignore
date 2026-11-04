@@ -1,0 +1,44 @@
+# Live research state and prepared release assets.
+/research-data/
+/release-assets/
+/archive/
+# Presentations, including sources and exported copies, stay local.
+/platform/presentation/
+**/[Pp]resentation*/
+**/[Ss]lides*/
+*.ppt
+*.pptx
+*.pptm
+*.pps
+*.ppsx
+*.odp
+*.key
+# Local environments, state and credentials.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.env
+.env.*
+!.env.example
+.aws/
+.codex/
+.agents/
+*.pem
+*.keyfile
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+.runtime/
+.test-data/
+cache/
+private-data/
+*.log
+*.pid
+.DS_Store
+Thumbs.db

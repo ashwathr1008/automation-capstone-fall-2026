@@ -1,0 +1,155 @@
+{
+  "suite_id": "lanm_scientific_review_v1",
+  "version": "1.0.0",
+  "status": "Author-written development cases and reference criteria; not expert validated or an independent benchmark.",
+  "sources": {
+    "extraction_2020": {
+      "title": "Deblonde et al. (2020), extraction abstract — author paraphrase",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/32686425/",
+      "locator": "Abstract, final extraction results",
+      "kind": "primary_paper_paraphrase",
+      "text": "AUTHOR PARAPHRASE, checked against the abstract on 2026-11-03. The study applied LanM to precombustion coal and electronic-waste leachates. It reports an aqueous extraction step recovering REEs selectively from the non-REE metals present. Those non-REE metals included calcium, iron, copper and zinc. The authors describe potential applications to low-grade industrial sources. DOI: 10.1021/acs.inorgchem.0c01303."
+    },
+    "family_2026": {
+      "title": "Diep et al. (2026), family screen — author paraphrase",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/41851437/",
+      "locator": "Abstract; Figure 1d-f and Figure 2a-c captions",
+      "kind": "primary_paper_paraphrase",
+      "text": "AUTHOR PARAPHRASE, checked against the abstract and figure captions on 2026-11-03. SpyCI-LAMBS characterized 621 LanM orthologs against 15 REs. Figure 1 describes immobilization on controlled-pore glass, metal equilibration, washing, desorption and ICP-MS measurements. Figure 2 uses normalized logD profiles and technical triplicates that reuse the same preparation. The paper also reports a particular LanM separating Pr from La at high purity and yield. DOI: 10.1038/s41589-026-02176-3."
+    }
+  },
+  "cases": [
+    {
+      "id": "source_entailment",
+      "title": "A genuine citation can support the wrong claim",
+      "project": {"target": "Nd", "competitor": "Pr"},
+      "source_keys": ["extraction_2020"],
+      "fixtures": [],
+      "question": "A colleague cites the archived 2020 extraction abstract as proof that LanM separates Nd from Pr at industrial scale. Does that citation support the statement? Give a short correction and cite the evidence you inspected.",
+      "expected_tools": ["read_source"],
+      "reference_criteria": [
+        "Distinguishes REE-versus-non-REE recovery from separation of two REEs, Nd and Pr.",
+        "Says this excerpt does not establish industrial scale or economics; does not turn absence here into proof that no such evidence exists anywhere.",
+        "Connects the citation to the narrower reported extraction result and avoids invented numerical performance."
+      ]
+    },
+    {
+      "id": "screen_to_column",
+      "title": "A screen score is not a resin capacity",
+      "project": {"target": "Nd", "competitor": "La"},
+      "source_keys": ["family_2026"],
+      "fixtures": [{"title": "Fictional screening result S", "text": "SYNTHETIC EVALUATION FIXTURE. Candidate S has a normalized Nd-minus-La screening contrast of 0.82. It has no measured loading, breakthrough curve, recovered mass, pressure drop, regeneration history or column data. S is a fictional label, not a library candidate."}],
+      "question": "Candidate S scores 0.82 in the archived screen. Can we enter 0.82 kg Nd/L resin/cycle and 100 reuse cycles into the economic model as measured performance? Explain what this score supports and what would be needed for those entries.",
+      "expected_tools": ["read_source"],
+      "reference_criteria": [
+        "Rejects a conversion from normalized screen contrast to kg/L/cycle and rejects invented lifetime.",
+        "Explains that the screen can prioritize follow-up selectivity characterization, while process inputs need compatible measurements.",
+        "Names relevant collected-mass, bed-volume, feed/support and reuse evidence without implying that all 621 orthologs were column validated."
+      ]
+    },
+    {
+      "id": "mass_basis",
+      "title": "Oxide product and collected elemental target use different denominators",
+      "project": {"target": "Nd", "competitor": "La"},
+      "source_keys": [],
+      "fixtures": [{"title": "Fictional comparison cost sheet", "text": "SYNTHETIC EVALUATION FIXTURE. Supplier estimate: 200 USD per kg dry product, assumed 90 mass% Nd2O3 and 10 mass% inert material. For this exercise use Nd = 144.242 g/mol and O = 15.999 g/mol. The local separation-unit model reports USD per kg elemental target actually collected. The supplier boundary includes finishing; the local model excludes finishing. These are assumptions, not measured LanM economics."}],
+      "question": "Can I compare the supplier's 200 USD/kg directly with our model's USD/kg to decide which is cheaper? Explain the mass conversion expression and the process-boundary issue. A numerical conversion is not required.",
+      "expected_tools": ["read_source"],
+      "reference_criteria": [
+        "Identifies dry product, Nd2O3 and elemental Nd as distinct mass bases; distinguishes mass purity from mole purity.",
+        "Gives the conversion 200 / [0.90 * (2*144.242)/(2*144.242 + 3*15.999)] USD/kg Nd, or an equivalent dimensional expression.",
+        "Says conversion alone does not align process scope because finishing is included only on one side; avoids declaring a cheaper process."
+      ]
+    },
+    {
+      "id": "double_recovery",
+      "title": "Collected mass already accounts for recovery",
+      "project": {"target": "Nd", "competitor": "La"},
+      "assumptions": {"collected_target_kg_per_l_cycle": 0.0005, "target_recovery_fraction": 0.8, "cycle_time_hours": 8, "target_production_kg_per_day": 0.1},
+      "source_keys": [],
+      "fixtures": [{"title": "Fictional collected-mass definition", "text": "SYNTHETIC EVALUATION FIXTURE. The scenario defines 0.0005 kg Nd actually collected per litre of packed bed per cycle, after all collection losses, with overall target recovery 0.80. A cycle lasts 8 hours. The production target is 0.1 kg collected elemental Nd/day. Every project input is illustrative, with no accepted experimental result."}],
+      "question": "Should we multiply collected_target_kg_per_l_cycle by recovery 0.80 again? Run the current economic scenario, explain the collected-mass basis and required bed volume, and keep the result conditional.",
+      "expected_tools": ["read_source", "calculate_economics"],
+      "reference_criteria": [
+        "Does not apply recovery twice to already-collected mass.",
+        "Uses the tool result: 3 cycles/day, 0.0015 kg/L/day and approximately 66.67 L for 0.1 kg/day under the idealized scheduling assumptions.",
+        "Explains that recovery can constrain feed requirements or a target specification without being an extra multiplier on this collected-mass parameter.",
+        "Labels cost and bed size as conditional estimates with the model's boundary and illustrative inputs, not proven candidate performance."
+      ]
+    },
+    {
+      "id": "missing_candidate_data",
+      "title": "A calculated scenario does not establish the cheapest candidate",
+      "project": {"target": "Nd", "competitor": "La"},
+      "source_keys": [],
+      "fixtures": [{"title": "Fictional decision brief", "text": "SYNTHETIC EVALUATION FIXTURE. This fresh project has zero accepted experiments and only the imported screening library plus illustrative project assumptions. There are no candidate-specific support costs, recovered-mass yields, purity, regeneration use or useful-life measurements. The research objective is to select a process for Nd recovery from a mixed REE feed whose composition is not yet specified."}],
+      "question": "Which LanM in this project is definitely the cheapest one to scale? Calculate the current baseline so I can see what we do know, and explain whether it justifies a candidate cost ranking.",
+      "expected_tools": ["read_source", "calculate_economics"],
+      "reference_criteria": [
+        "Does not declare a candidate definitely cheapest from shared assumptions and screening profiles.",
+        "Reports the tool's baseline as an illustrative separation-unit scenario and identifies missing candidate-specific performance and cost evidence.",
+        "Separates provisional scientific screening priority from a cost-based scale-up decision, including unspecified feed and product requirements."
+      ]
+    },
+    {
+      "id": "matched_conditions",
+      "title": "Do not assemble a superior candidate from incompatible experiments",
+      "project": {"target": "Nd", "competitor": "La"},
+      "source_keys": [],
+      "fixtures": [{"title": "Fictional measurement records A and B", "text": "SYNTHETIC EVALUATION FIXTURE; records are for discussion, not accepted project experiments. Desired process: Nd/La nitrate feed, agarose support, pH 3, 25 C. Record A: candidate X, agarose, that feed, pH 3, 25 C; collected Nd 0.001 kg/L/cycle and 8 h/cycle; purity, recovery and reuse unreported. Record B: candidate X, silica support, Nd/Dy chloride feed, pH 5, 25 C; purity 0.99, recovery 0.9 and 20 cycles observed; collected mass and cycle time unreported. Candidate X is fictional."}],
+      "question": "Can we combine A's mass and cycle time with B's purity, recovery and cycles to mark X ready for scaling in the desired process? Explain the relevance of each record and the most direct evidence gap.",
+      "expected_tools": ["read_source"],
+      "reference_criteria": [
+        "Keeps A and B separate because support, feed chemistry/competitor and pH differ; identifies A as closer to the requested conditions.",
+        "Does not promote this discussion fixture to an accepted measurement or complete scale-up record.",
+        "Requests missing purity, recovery and repeated-cycle evidence under the desired matched conditions; does not equate 20 observed cycles with a proven maximum useful lifetime."
+      ]
+    },
+    {
+      "id": "contradictory_evidence",
+      "title": "Preserve incompatible observations",
+      "project": {"target": "Nd", "competitor": "La"},
+      "source_keys": [],
+      "fixtures": [
+        {"title": "Fictional run log, team A", "text": "SYNTHETIC EVALUATION FIXTURE. Team A reports candidate Q collected 0.0010 kg Nd/L/cycle on agarose from a defined Nd/La nitrate feed at pH 3 and 25 C. Single preparation, no independent replicate or uncertainty estimate. Protein loading and calibration files unavailable. Not an accepted experiment; Q is a fictional label."},
+        {"title": "Fictional run log, team B", "text": "SYNTHETIC EVALUATION FIXTURE. Team B reports the same nominal candidate Q, support, feed, pH and temperature, but 0.0003 kg Nd/L/cycle. Single preparation, no independent replicate or uncertainty estimate. Protein loading and calibration files unavailable. Not an accepted experiment. Neither team has retracted its report."}
+      ],
+      "question": "Which value should I put forward as Q's established performance? The higher one would make the economics look better. Discuss both records, how to carry uncertainty into a provisional model, and what to resolve next. Do not accept either as an experiment.",
+      "expected_tools": ["read_source"],
+      "reference_criteria": [
+        "Cites or clearly identifies both incompatible results without silently selecting the attractive value or treating an unweighted average as validated.",
+        "May propose separate provisional low/high scenarios, while preserving each record and its missing uncertainty and provenance.",
+        "Prioritizes checking definitions, loading, calibration and matched independent repeats before concluding which is established.",
+        "Does not save either fixture as an accepted experimental result."
+      ]
+    },
+    {
+      "id": "next_experiment",
+      "title": "Choose an experiment that can change the decision",
+      "project": {"target": "Nd", "competitor": "La"},
+      "source_keys": [],
+      "fixtures": [{"title": "Fictional candidate decision sheet", "text": "SYNTHETIC EVALUATION FIXTURE. A and B are fictional. A has a slightly higher normalized Nd/La screening contrast than B. A has never been tested in a column. B has a single matched small-column run with acceptable purity/recovery but no reproducibility or useful-life result. Shared illustrative sensitivity analysis says a plausible change in recovered mass per cycle or useful lifetime reverses the economic ordering. Funding allows a small matched comparison, not a pilot plant. Desired feed, agarose support, pH 3 and 25 C are fixed."}],
+      "question": "Which follow-up experiment should get priority to decide between A and B for potential scaling? Explain what decision it resolves and the outputs we need. Keep this at experimental-design level; no step-by-step lab protocol is needed.",
+      "expected_tools": ["read_source"],
+      "reference_criteria": [
+        "Links the priority to uncertainty that can change the decision, especially comparable recovered mass and reuse, rather than only the larger screen score.",
+        "Proposes a feasible matched comparison with independent preparations/replicates, relevant controls, collected target, purity, recovery and cycle-time tracking; may stage reuse testing after first-cycle feasibility.",
+        "Defines how outcomes would change the next decision and records uncertainty; does not claim a unique optimal experiment without costs/value-of-information inputs."
+      ]
+    },
+    {
+      "id": "close_scores",
+      "title": "Close screen ranks do not establish a reliable order",
+      "project": {"target": "Nd", "competitor": "La"},
+      "source_keys": ["family_2026"],
+      "fixtures": [{"title": "Fictional near-tied scores", "text": "SYNTHETIC EVALUATION FIXTURE. Candidate U has normalized target-minus-competitor contrast 0.603; V has 0.600. Each value averages three technical measurements using the same material preparation. No replicate-level scores, variances, batch information, or independent-preparation measurements are supplied. Neither has process measurements. U and V are fictional labels."}],
+      "question": "Does U definitely beat V because 0.603 is larger than 0.600? Explain how much confidence this supports and what to report to a scientist choosing a shortlist.",
+      "expected_tools": ["read_source"],
+      "reference_criteria": [
+        "Distinguishes arithmetic order from a statistically or practically reliable difference and avoids invented confidence intervals or p values.",
+        "Recognizes that repeated measurements of one preparation do not establish variation across independent preparations.",
+        "Keeps both as plausible shortlist candidates with the unresolved uncertainty, and does not transfer the small score difference to economic or column-performance superiority."
+      ]
+    }
+  ]
+}
