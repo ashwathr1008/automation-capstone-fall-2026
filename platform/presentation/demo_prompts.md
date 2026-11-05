@@ -26,6 +26,12 @@ The current CSV contains stock-solution dispense volumes in microliters, not exp
 
 Expected illustrative outputs for rehearsal: 50 cycles gives 0.025 kg/L and $4,000/kg; 100 gives 0.05 kg/L and $2,000/kg; 200 gives 0.1 kg/L and $1,000/kg. These are material-replacement costs only, not total separation cost. If the named draft already exists, inspect and update that draft as needed; registered versions remain preserved.
 
+## Reuse an existing registered method — Research
+
+> Run the registered method capture-cost@1166a29646c9 twice in this project. For both runs use material_usd_per_l=100, useful_cycles=100, regeneration_usd_per_l_cycle=0.1, annual_fixed_cost_usd=1000, and annual_collected_target_kg=100. Set collected_target_kg_per_l_cycle=0.01 in the first run and 0.02 in the second. Save both runs and return a compact comparison table with the inputs that changed and each cost component. Explain that these are illustrative accounting scenarios, not measured performance or a full plant cost estimate. Keep project assumptions unchanged and do not create experimental results.
+
+This version is already registered in the current workspace. Expected totals are $120/kg and $65/kg, respectively; both results also exist in the illustrative rehearsal project. The values include the supplied material, regeneration, and allocated fixed costs. They use a different boundary and input units from `demo_material_reuse` above. Check that the named version is present before demonstrating this prompt in another installation.
+
 ## Hypothetical sensitivity analysis — Research
 
 > Calculate the built-in separation-unit cost using this project's current assumptions. Then save a sensitivity sweep with useful lifetime at 0.5, 1, and 2 times its current value, holding the other inputs fixed. Show a comparison table, explain which cost component changes, and identify the inputs supported by accepted measurements versus scenario assumptions. Keep the project's main assumptions unchanged and label the sweep as hypothetical scenarios rather than confidence intervals.
