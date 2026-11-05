@@ -28,7 +28,15 @@ Conversation uses the installed Codex runtime and its existing sign-in. The laun
 - “Export the next six recommended untested candidates as a serial-dilution CSV.”
 - “For this comparison, leave out the first candidate. Save the next four as our testing selection without changing the project's assumptions.” Then: “Export those four candidates.”
 
-Build mode writes a numerical method, checks declared reference examples, and registers a content-identified version. Research mode uses existing methods. The source and checks are visible under **Models & methods**. Scientific suitability still needs review.
+## Choose Research or Build methods
+
+Use **Research** for scientific discussion, inspecting sources, comparing candidates, and running existing calculations. It can save requested project changes, including assumption revisions, sources, testing selections, and predictions. Experiment acceptance still requires an explicit instruction. Research does not expose the tools that create method drafts, check drafts, or register new methods.
+
+Use **Build methods** when you want to create or revise a reusable calculation. It retains the research operations and adds the draft, check, and register tools. A method declares its calculation boundary, inputs and units, assumptions, references, and independently stated reference examples. Ask the agent to explain which equations or values come from sources and which are assumptions or reasoned choices. You can inspect the source, documentation, and recorded checks under **Models & methods**.
+
+Generated methods use a restricted numerical Python environment with `math` and `statistics`, and run in a separate process with a timeout. They cannot use arbitrary packages, network requests, or file access. Passing reference checks allows a content-identified version to be registered for reuse; it establishes numerical agreement with those examples, not scientific validity. Revising the method produces a new checked version while earlier registered versions and saved results remain available.
+
+Both modes use the same saved project records. Research keeps method-authoring tools unavailable while you work with existing analyses; Build enables authoring when it is needed. The mode selector is separate from the language-model selector. No speed or scientific-quality advantage has been established for either mode.
 
 ## Work in a project
 
@@ -36,7 +44,7 @@ Each project you create has a target REE, a comparison REE, feed/support conditi
 
 Experiments start as drafts. Explicit acceptance changes a candidate's project status. Acceptance records the user's review decision. It does not independently verify the measurement. Published screening records and literature excerpts remain distinct from accepted project experiments.
 
-The shared library contains **616 candidate records** and **14 source records**, with contexts, assertions, formulas, replicate observations, and source locators. The associated publication reports 621 candidates; analyses use the 616 available imported records.
+The starter shared library contains **616 candidate records** and **14 source records**, with contexts, assertions, formulas, replicate observations, and source locators. Additional sources and reviewed results can be shared explicitly. The associated publication reports 621 candidates; analyses use the 616 available imported records.
 
 Untested ranking uses target-minus-comparison normalized screening contrast across the entire eligible pool. Close scores need scientific interpretation. Updated ranking requires accepted, applicable collected-output, recovery, purity, complete-cycle-time, and observed-cycle data. It applies the project's declared purity, recovery, and cost requirements. Support, feed, target, and specified pH/temperature must match. Observed cycles do not establish maximum useful lifetime. Missing evidence can leave a candidate unranked.
 
@@ -47,6 +55,18 @@ Clicking a citation opens an evidence preview inside the application. Archived P
 **Search PubMed** in Evidence retrieves citations and available abstracts from NCBI. The conversation has the same search and PMID-retrieval tools. Results retain identifiers, publication types, indexing notices, retrieval provenance, and source hashes. Search history records the query and saved sources. Repeated retrieval of unchanged content reuses the source. A changed abstract becomes a new source. These records do not change assumptions or accepted experiments, and the preview labels them as abstracts. PubMed coverage is incomplete for REE engineering. Optional `NCBI_EMAIL` and `NCBI_API_KEY` environment variables are supported; neither is inferred from personal files or stored in source provenance.
 
 The **LanM handbook** contains seven short sections on interpreting evidence, compatible conditions, experiments, economics, citations, and method checks. The agent receives relevant section summaries and can read sections on demand. This is an original, source-linked synthesis awaiting independent scientific review. It does not supply missing candidate measurements.
+
+## Share evidence between projects
+
+Sources and experimental records added to a project remain associated with that project. To make a source or an accepted experimental result available to other projects in the same workspace, explicitly ask the conversation to share it in the shared library and give the reason. For example: “Share this source in the shared library, linked to this candidate, because it documents the published reuse evidence.” An experimental result must already be accepted before it can be shared.
+
+The agent previews the selected record, then saves an immutable shared copy with its origin, content, and sharing reason. A source can be linked to an existing candidate. Abstracts retain their abstract designation. Shared experimental results retain their conditions and their original review status, but sharing does not accept them as experiments in other projects or mark those projects' candidates tested. The operation does not create candidates or overwrite published screening profiles.
+
+In **Evidence**, these cards are labeled **Shared evidence**. Open a card to inspect the originating project and record, linked candidate where present, and sharing reason and date. A revised item includes a **Previous shared version** link. Sharing is requested through the conversation; existing evidence preview, search, and download controls remain available.
+
+To correct a shared item, create a new shared revision that identifies the earlier item it supersedes and records the reason. The earlier copy remains available so its provenance is preserved. Sharing makes evidence visible across projects in this workspace; distributing it to another installation requires refreshing and transferring the starter package as described below.
+
+The agent operations are `preview_shared_evidence` and `promote_shared_evidence`. The preview returns the exact content and provenance to be shared; promotion requires that preview's content hash and a reason. This guards against copying a record that changed after it was inspected.
 
 ## Testing CSV handoff
 

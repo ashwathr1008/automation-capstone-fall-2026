@@ -24,6 +24,10 @@ python platform/launch.py --data-dir PATH_TO_EMPTY_FOLDER/research-data --open-b
 
 ## Refresh shared library and tools
 
+Project sources and experiments can first be promoted explicitly to the shared library through LanM Research. Sharing creates an immutable copy with provenance and a reason; experimental results must already be accepted. Shared copies are available to other projects using that working database. They do not become accepted experiments in those projects, and they do not overwrite candidate screening records. Corrections create a new shared revision referencing the earlier copy.
+
+Refreshing the starter package is the separate step that distributes shared records and reusable methods to another installation. Export includes explicitly shared source text and experimental-result snapshots; ordinary project sources, conversations, assumptions, and experiments stay in their project. It is a snapshot for creating a workspace, not automatic synchronization between running installations.
+
 Stop the application, then run from the repository root:
 
 ```powershell

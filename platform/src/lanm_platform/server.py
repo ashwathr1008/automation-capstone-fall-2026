@@ -182,6 +182,18 @@ def handler_for(app):
                     if len(parts)==3:
                         return self._json(app.store.update_project(ident,body.get("changes",body.get("values",{})),body.get("reason","Project settings updated by user")))
                     operation=parts[3]
+                    if operation=="shared-evidence" and len(parts)==5:
+                        allowed={"record_type","record_id","candidate_id"}
+                        required={"record_type","record_id"}
+                        if parts[4]=="promote":
+                            allowed|={"snapshot_sha256","reason","supersedes_source_id"}
+                            required|={"snapshot_sha256","reason"}
+                        elif parts[4]!="preview":
+                            return self._json({"error":"Not found"},404)
+                        if set(body)-allowed: raise ValueError("Unsupported shared evidence field")
+                        if required-set(body): raise ValueError("Supply the record identity and required promotion review fields")
+                        if parts[4]=="preview": return self._json(app.store.preview_shared_evidence(ident,**body))
+                        return self._json(app.store.promote_shared_evidence(ident,**body),201)
                     if operation=="testing-selections" and len(parts)==4:
                         allowed={"ranking_run_id","candidate_ids","reason","allow_stale"}
                         if set(body)-allowed: raise ValueError("Unsupported testing selection field")

@@ -102,6 +102,25 @@ class MCPIntegrationTests(unittest.TestCase):
         self.assertIn("collected_target_kg_per_l_cycle", inputs)
         self.assertEqual(inputs["collected_target_kg_per_l_cycle"]["unit"], "kg/L/cycle")
 
+    def test_chat_can_preview_and_share_evidence_in_research_or_build_mode(self):
+        for build in (False, True):
+            with self.subTest(build=build):
+                catalog = {tool["name"]: tool for tool in definitions(build)}
+                self.assertTrue(catalog["preview_shared_evidence"]["annotations"]["readOnlyHint"])
+                self.assertFalse(catalog["promote_shared_evidence"]["annotations"]["readOnlyHint"])
+                source = self.call("save_source", {"project_id": self.pid, "title": "Reviewed fixture",
+                    "text": f"Sharing fixture for mode {build}; no scientific measurement.",
+                    "url": "https://example.org/shared-fixture"}, build=build)
+                args = {"project_id": self.pid, "record_type": "source", "record_id": source["id"],
+                        "candidate_id": "o-36"}
+                draft = self.call("preview_shared_evidence", args, build=build)
+                shared = self.call("promote_shared_evidence", {**args,
+                    "snapshot_sha256": draft["snapshot_sha256"], "reason": "Explicitly share this reviewed fixture."}, build=build)
+                other = self.call("create_project", {"name": "Shared reader", "target": "Nd", "competitor": "La"})
+                result = self.call("read_source", {"project_id": other["id"], "source_id": shared["id"]})
+                self.assertTrue(result["hash_verified"])
+                self.assertEqual(result["excerpt"], source["text"])
+                self.assertEqual(self.store.get_candidate("o-36", other["id"])["experiments"], [])
     def test_registered_version_cannot_silently_change_implementation(self):
         self.call("save_method_draft", {"method_id": "product-purity", "manifest": method_manifest(), "code": METHOD_CODE}, build=True)
         self.call("check_method", {"method_id": "product-purity"}, build=True)
@@ -214,6 +233,32 @@ class HTTPIntegrationTests(unittest.TestCase):
         self.assertEqual(before["assumptions"], after["assumptions"])
         status, result = self.request("GET", "/api/projects", headers={"Origin": "https://unrelated.example"})
         self.assertEqual(status, 403)
+
+    def test_shared_evidence_http_preview_promotion_and_cross_project_read(self):
+        source = self.app.store.add_source(self.pid, "HTTP sharing fixture", "Reviewed source excerpt.",
+                                           "https://example.org/reviewed")
+        other = self.app.store.create_project("Read shared evidence", "Nd", "La")["id"]
+        route = f"/api/projects/{self.pid}/shared-evidence"
+        args = {"record_type": "source", "record_id": source["id"]}
+        status, draft = self.request("POST", route + "/preview", args)
+        self.assertEqual(status, 200)
+        self.assertNotIn(source["id"], [s["id"] for s in self.app.store.list_sources(other)])
+        status, rejected = self.request("POST", route + "/promote", {**args,
+            "snapshot_sha256": "0" * 64, "reason": "Stale request fixture"})
+        self.assertEqual(status, 400)
+        self.assertIn("error", rejected)
+        status, shared = self.request("POST", route + "/promote", {**args,
+            "snapshot_sha256": draft["snapshot_sha256"], "reason": "User requested shared evidence."})
+        self.assertEqual(status, 201)
+        status, result = self.request("GET", f"/api/projects/{other}/sources/{shared['id']}/text")
+        self.assertEqual((status, result["excerpt"]), (200, source["text"]))
+        status, result = self.request("GET", f"/api/projects/{other}/evidence-preview?source_id={shared['id']}")
+        self.assertEqual((status, result["preview_kind"]), (200, "text"))
+        self.assertTrue(result["hash_verified"])
+        self.assertIn("file_url", result)
+        status, rejected = self.request("POST", route + "/promote", {**args,
+            "snapshot_sha256": draft["snapshot_sha256"], "reason": "Test unexpected override", "text": "Injected replacement"})
+        self.assertEqual(status, 400)
 
     def test_http_custom_method_execution_saves_exact_inputs(self):
         self.app.registry.create_draft("product-purity", method_manifest(), METHOD_CODE)

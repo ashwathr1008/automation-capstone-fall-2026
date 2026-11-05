@@ -53,6 +53,17 @@ def _json(value):
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
 
 
+def _shared_successors(sources):
+    """Derive revision links without changing the immutable shared snapshots."""
+    shared = {source["id"]: source for source in sources if source.get("origin") == "reviewed_shared_evidence"}
+    successors = {}
+    for identifier, source in shared.items():
+        previous = source.get("supersedes_source_id")
+        if previous in shared:
+            successors.setdefault(previous, []).append(identifier)
+    return {identifier: sorted(revisions) for identifier, revisions in successors.items()}
+
+
 def _text(value, field, maximum=20000):
     if not isinstance(value, str) or not value.strip() or len(value) > maximum:
         raise ValueError(f"{field} must be nonempty text of at most {maximum} characters")
@@ -910,6 +921,102 @@ class Store:
             self._event(db, project_id, "source_archived", source_id=record["id"], sha256=digest)
         return record
 
+    def _shared_evidence_snapshot(self, db, project_id, record_type, record_id, candidate_id=None):
+        """Build a portable evidence snapshot without changing scientific state."""
+        if record_type not in {"source", "experiment"}:
+            raise ValueError("Record type must be source or experiment")
+        record_id = _text(record_id, "Source or experiment ID", 200)
+        if candidate_id is not None:
+            candidate_id = _text(candidate_id, "Candidate ID", 200)
+        if record_type == "source":
+            row = db.execute("SELECT payload,sha256 FROM sources WHERE id=? AND project_id=?", (record_id, project_id)).fetchone()
+            if not row:
+                raise ValueError("Source not found in this project")
+            snapshot = json.loads(row["payload"])
+            text = snapshot.get("text")
+            if not isinstance(text, str) or not text.strip():
+                raise ValueError("Source text is missing")
+            digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+            if digest != row["sha256"] or digest != snapshot.get("sha256"):
+                raise ValueError("Source text failed its recorded SHA-256 integrity check")
+            title, url = snapshot["title"], snapshot.get("url", "")
+            evidence_kind = snapshot["evidence_kind"]
+        else:
+            row = db.execute("SELECT payload,status,candidate_id FROM experiments WHERE id=? AND project_id=?", (record_id, project_id)).fetchone()
+            if not row:
+                raise ValueError("Experiment not found in this project")
+            snapshot = json.loads(row["payload"])
+            if row["status"] != "accepted" or snapshot.get("status") != "accepted":
+                raise ValueError("Only an explicitly accepted project experiment can be shared")
+            if snapshot.get("candidate_id") != row["candidate_id"]:
+                raise ValueError("Experiment candidate does not match its stored record")
+            if candidate_id is not None and candidate_id != snapshot["candidate_id"]:
+                raise ValueError("Candidate ID must match the accepted experiment")
+            candidate_id = snapshot["candidate_id"]
+            title = "Accepted experiment snapshot: " + snapshot["label"]
+            url, evidence_kind = "", "accepted_experiment_snapshot"
+            text = ("Accepted experiment shared as reference evidence. Acceptance belongs to the originating project; "
+                    "this is not an accepted experiment in another project or independent scientific validation.\n\n"
+                    + json.dumps(snapshot, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False))
+            digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        if snapshot.get("id") != record_id or snapshot.get("project_id") != project_id:
+            raise ValueError("Evidence identity does not match its project-owned record")
+        if candidate_id is not None and not db.execute("SELECT 1 FROM candidates WHERE id=?", (candidate_id,)).fetchone():
+            raise ValueError("Candidate not found: " + candidate_id)
+        identity = {"source_project_id": project_id, "source_record_type": record_type,
+                    "source_record_id": record_id, "candidate_id": candidate_id, "record_snapshot": snapshot}
+        snapshot_sha256 = hashlib.sha256(json.dumps(identity, ensure_ascii=False, sort_keys=True,
+                                                    separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+        qualification = ("Reviewed shared reference evidence; sharing is not independent scientific validation and "
+                         "does not accept experiments, change measurements or assumptions, or change candidate rankings in any project.")
+        return {"record_type": record_type, "record_id": record_id, "title": title, "text": text, "url": url,
+                "sha256": digest, "candidate_id": candidate_id, "snapshot_sha256": snapshot_sha256,
+                "origin": "reviewed_shared_evidence", "evidence_kind": evidence_kind,
+                "provenance": {**identity, "snapshot_sha256": snapshot_sha256},
+                "verification": qualification, "qualification": qualification}
+
+    def preview_shared_evidence(self, project_id, record_type, record_id, candidate_id=None):
+        """Review the exact project-owned source or accepted experiment to share."""
+        self._project(project_id)
+        with self._connect() as db:
+            return self._shared_evidence_snapshot(db, project_id, record_type, record_id, candidate_id)
+
+    def promote_shared_evidence(self, project_id, record_type, record_id, snapshot_sha256, reason,
+                                candidate_id=None, supersedes_source_id=None):
+        """Append a reviewed, self-contained shared source; retain every earlier version."""
+        self._project(project_id)
+        reason = _text(reason, "Sharing review reason")
+        if (not isinstance(snapshot_sha256, str) or len(snapshot_sha256) != 64
+                or any(character not in "0123456789abcdef" for character in snapshot_sha256)):
+            raise ValueError("Supply the snapshot SHA-256 returned by preview_shared_evidence")
+        if supersedes_source_id is not None:
+            supersedes_source_id = _text(supersedes_source_id, "Superseded shared source ID", 200)
+        with self._connect() as db:
+            # Serialize the guarded read and insertion so retries cannot create duplicates.
+            db.execute("BEGIN IMMEDIATE")
+            proposal = self._shared_evidence_snapshot(db, project_id, record_type, record_id, candidate_id)
+            if proposal["snapshot_sha256"] != snapshot_sha256:
+                raise ValueError("Evidence changed since preview; inspect a fresh snapshot before sharing")
+            if supersedes_source_id is not None:
+                target = db.execute("SELECT payload FROM library_records WHERE id=? AND kind='sources'",
+                                    ("sources:" + supersedes_source_id,)).fetchone()
+                if not target or json.loads(target[0]).get("origin") != "reviewed_shared_evidence":
+                    raise ValueError("A revision must supersede an existing reviewed shared source")
+            identity = json.dumps({"snapshot_sha256": snapshot_sha256, "supersedes_source_id": supersedes_source_id}, sort_keys=True)
+            identifier = "shared_" + hashlib.sha256(identity.encode("utf-8")).hexdigest()
+            previous = db.execute("SELECT payload FROM library_records WHERE id=? AND kind='sources'",
+                                  ("sources:" + identifier,)).fetchone()
+            if previous:
+                return json.loads(previous[0])
+            shared = {**proposal, "id": identifier, "review_reason": reason,
+                      "shared_at": _now(), "supersedes_source_id": supersedes_source_id}
+            db.execute("INSERT INTO library_records(id,kind,payload) VALUES(?,?,?)",
+                       ("sources:" + identifier, "sources", _json(shared)))
+            self._event(db, project_id, "evidence_shared", source_id=identifier, record_type=record_type,
+                        record_id=record_id, snapshot_sha256=snapshot_sha256, supersedes_source_id=supersedes_source_id,
+                        reason=reason)
+        return shared
+
     def _archive_pubmed_article(self, project_id, article):
         scope = "PubMed citation and abstract. The full article has not been retrieved."
         authors = "; ".join(article.get("authors", []))
@@ -967,7 +1074,13 @@ class Store:
         with self._connect() as db:
             own = [json.loads(r[0]) for r in db.execute("SELECT payload FROM sources WHERE project_id=? ORDER BY rowid DESC", (project_id,))]
             library = [json.loads(r[0]) for r in db.execute("SELECT payload FROM library_records WHERE kind='sources'")]
-        return own + [{**row, "origin": "published_library", "evidence_kind": "archived_source_metadata"} for row in library]
+        successors = _shared_successors(library)
+        library.sort(key=lambda row: (0 if row.get("origin") == "reviewed_shared_evidence" and row["id"] not in successors
+                                      else 1 if row.get("origin") == "reviewed_shared_evidence" else 2))
+        return own + [{**row, "origin": row.get("origin", "published_library"),
+                       "evidence_kind": row.get("evidence_kind", "archived_source_metadata"),
+                       **({"superseded_by_source_ids": successors[row["id"]]} if row["id"] in successors else {})}
+                      for row in library]
 
     def read_source(self, project_id, source_id, query="", offset=0, limit=12000):
         """Read a bounded, hash-verified source excerpt without extracting files."""
@@ -981,14 +1094,24 @@ class Store:
         with self._connect() as db:
             own = db.execute("SELECT payload FROM sources WHERE id=? AND project_id=?", (source_id, project_id)).fetchone()
             row = own or db.execute("SELECT payload FROM library_records WHERE id=? AND kind='sources'", ("sources:" + str(source_id),)).fetchone()
-        if not row:
-            raise ValueError("Source not found in this project or the published library")
-        source = json.loads(row[0])
+            if not row:
+                raise ValueError("Source not found in this project or the published library")
+            source = json.loads(row[0])
+            successors = (_shared_successors(json.loads(r[0]) for r in db.execute("SELECT payload FROM library_records WHERE kind='sources'"))
+                          if source.get("origin") == "reviewed_shared_evidence" else {})
         result = {"source_id": source_id, "title": source.get("title", source_id), "url": source.get("url", ""),
                   "status": "unavailable", "hash_verified": False, "excerpt": "", "offset": offset,
                   "next_offset": None, "total_chars": None, "query_found": None if not query else False}
+        if source.get("origin") == "reviewed_shared_evidence":
+            if source_id in successors:
+                result["superseded_by_source_ids"] = successors[source_id]
+            result.update({key: deepcopy(source[key]) for key in
+                           ("origin", "evidence_kind", "candidate_id", "snapshot_sha256", "review_reason",
+                            "shared_at", "supersedes_source_id", "verification") if key in source})
+            result["provenance"] = {key: deepcopy(value) for key, value in source.get("provenance", {}).items()
+                                    if key != "record_snapshot"}
         try:
-            if own:
+            if own or source.get("origin") == "reviewed_shared_evidence":
                 raw = source["text"].encode("utf-8")
                 expected = source.get("sha256")
             else:
@@ -1039,5 +1162,12 @@ class Store:
             records = [(row["kind"], json.loads(row["payload"])) for row in db.execute("SELECT kind,payload FROM library_records")]
         contexts = [r for kind, r in records if kind == "contexts" and (candidate_id is None or r.get("candidate_id") == candidate_id)]
         context_ids = {r["id"] for r in contexts}
+        successors = _shared_successors(r for kind, r in records if kind == "sources")
         return {"contexts": contexts, "assertions": [r for kind, r in records if kind == "assertions" and r.get("context_id") in context_ids],
-                "formulas": [r for kind, r in records if kind == "formulas" and r.get("context_id") in context_ids]}
+                "formulas": [r for kind, r in records if kind == "formulas" and r.get("context_id") in context_ids],
+                "shared_evidence": [{**{key: deepcopy(value) for key, value in r.items() if key not in {"text", "provenance"}},
+                                     **({"superseded_by_source_ids": successors[r["id"]]} if r["id"] in successors else {}),
+                                     "provenance": {key: deepcopy(value) for key, value in r.get("provenance", {}).items()
+                                                    if key != "record_snapshot"}}
+                                    for kind, r in records if kind == "sources" and r.get("origin") == "reviewed_shared_evidence"
+                                    and (candidate_id is None or r.get("candidate_id") == candidate_id)]}

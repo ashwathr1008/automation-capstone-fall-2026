@@ -112,6 +112,29 @@ class ResearchSnapshotTests(unittest.TestCase):
                 self.assertEqual(restored.execute("SELECT COUNT(*) FROM messages").fetchone()[0], 0)
                 self.assertEqual(restored.execute("PRAGMA journal_mode").fetchone()[0], "delete")
 
+    def test_explicitly_shared_source_survives_export_without_project_sources(self):
+        store = Store(self.data)
+        project = store.create_project("Source sharing fixture", "Nd", "La")["id"]
+        source = store.add_source(project, "Reviewed shared fixture", "Intentionally shared evidence text.",
+                                  "https://example.org/shared-evidence")
+        args = {"project_id": project, "record_type": "source", "record_id": source["id"]}
+        preview = store.preview_shared_evidence(**args)
+        shared = store.promote_shared_evidence(**args, snapshot_sha256=preview["snapshot_sha256"],
+                                               reason="Explicitly reviewed for the shared library.")
+        snapshot.create_snapshot(self.data, self.archive)
+        target = self.root / "shared-restored"
+        snapshot.restore_snapshot(self.archive, target)
+        restored = Store(target / "research-data")
+        self.assertEqual(restored.list_projects(), [])
+        with restored._connect() as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM sources").fetchone()[0], 0)
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM experiments").fetchone()[0], 0)
+        reader = restored.create_project("Fresh reader", "Nd", "La")["id"]
+        result = restored.read_source(reader, shared["id"])
+        self.assertEqual(result["excerpt"], source["text"])
+        self.assertTrue(result["hash_verified"])
+        self.assertNotIn(self.private_marker.encode(), (target / snapshot.DATABASE).read_bytes())
+
     def test_only_expected_method_artifacts_can_be_exported(self):
         for name in ["runtime_threads.json", "installation_manifest.json", "server.log", "methods/slides/deck.pdf", "methods/PowerPoint_export.pdf", "methods/Deck.pptx", "methods/Deck.pdf", "methods/.env", "methods/auth.json", "methods/ordinary-paper.pdf", "methods/versions/example/conversation.json", "methods/drafts/example/transcript.txt", "methods/versions/example/private/nested.json", "workspaces/research/evidence.txt", "workspaces/.codex/auth.json", "workspaces/package.zip", "uploads/conversation.json", "attachments/chat.txt", "evidence/session.json", "methods/__pycache__/example.pyc"]:
             self.put(name)

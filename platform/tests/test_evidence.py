@@ -65,6 +65,103 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Source not found"):
             read_original(self.store, other["id"], own["id"])
 
+    def share(self, source, **changes):
+        snapshot = self.store.preview_shared_evidence(self.pid, "source", source["id"])
+        return self.store.promote_shared_evidence(
+            self.pid, "source", source["id"], snapshot["snapshot_sha256"],
+            "Reviewed for use across project evidence discussions.", **changes)
+
+    def test_shared_snapshot_preview_and_download_work_from_another_project(self):
+        text = "Reviewed evidence: Δoutput is unknown. <script>remains plain text</script>"
+        own = self.store.add_source(self.pid, "Shared evidence fixture", text, "https://example.org/shared")
+        shared = self.share(own)
+        other = self.store.create_project("Other evidence project", "Nd", "Dy")
+        result = preview(self.store, other["id"], source_id=shared["id"])
+        self.assertTrue(result["available"])
+        self.assertTrue(result["original_available"])
+        self.assertTrue(result["text_available"])
+        self.assertTrue(result["hash_verified"])
+        self.assertEqual(result["preview_kind"], "text")
+        self.assertEqual(result["source"]["origin"], "reviewed_shared_evidence")
+        self.assertEqual(result["source"]["provenance"]["source_project_id"], self.pid)
+        self.assertNotIn("text", result["source"])
+        self.assertNotIn("text", result["source"]["provenance"]["record_snapshot"])
+        raw, mime, filename = read_original(self.store, other["id"], shared["id"])
+        self.assertEqual(raw, text.encode("utf-8"))
+        self.assertEqual(mime, "text/plain; charset=utf-8")
+        self.assertEqual(filename, shared["id"] + ".txt")
+        # Creating a preview must not remove text from the retained provenance.
+        retained = next(row for row in self.store.list_sources(other["id"]) if row["id"] == shared["id"])
+        self.assertEqual(retained["provenance"]["record_snapshot"]["text"], text)
+        with self.assertRaisesRegex(ValueError, "Source not found"):
+            read_original(self.store, other["id"], own["id"])
+
+    def test_shared_abstract_preview_retains_original_scope_and_indexing_notices(self):
+        own = self.store.add_source(
+            self.pid, "Abstract fixture", "Citation and abstract only.",
+            "https://pubmed.ncbi.nlm.nih.gov/900000001/",
+            evidence_kind="retrieved_literature_abstract",
+            provenance={"content_scope": "Abstract only; full article not retrieved.",
+                        "is_retracted": True, "notices": [{"type": "RetractionIn"}]})
+        shared = self.share(own)
+        other = self.store.create_project("Other literature project", "Nd", "Dy")
+        result = preview(self.store, other["id"], source_id=shared["id"])
+        self.assertEqual(result["source"]["evidence_kind"], "retrieved_literature_abstract")
+        original_provenance = result["source"]["provenance"]["record_snapshot"]["provenance"]
+        self.assertEqual(original_provenance, own["provenance"])
+        self.assertTrue(original_provenance["is_retracted"])
+
+    def test_shared_abstract_can_be_resolved_by_its_retained_doi(self):
+        own = self.store.add_source(
+            self.pid, "Shared DOI fixture", "Synthetic citation and abstract.",
+            "https://pubmed.ncbi.nlm.nih.gov/900000003/",
+            evidence_kind="retrieved_literature_abstract", provenance={"doi": "10.99999/shared-fixture"})
+        shared = self.share(own)
+        other = self.store.create_project("Other DOI project", "Nd", "Dy")
+        result = preview(self.store, other["id"], url="https://doi.org/10.99999/shared-fixture")
+        self.assertEqual(result["source_id"], shared["id"])
+        self.assertTrue(result["available"])
+
+    def test_shared_citation_uses_successor_while_explicit_id_retains_history(self):
+        url = "https://www.nature.com/articles/shared-evidence-fixture"
+        source = self.store.add_source(self.pid, "Earlier source", "Earlier interpretation.", url)
+        earlier = self.share(source)
+        revised = self.store.add_source(self.pid, "Corrected source", "Corrected interpretation.", url)
+        successor = self.share(revised, supersedes_source_id=earlier["id"])
+        other = self.store.create_project("Other revision project", "Nd", "Dy")
+        for reference in (url, url + ".pdf"):
+            self.assertEqual(preview(self.store, other["id"], url=reference)["source_id"], successor["id"])
+        historical = preview(self.store, other["id"], source_id=earlier["id"])
+        self.assertEqual(historical["source_id"], earlier["id"])
+        self.assertEqual(historical["source"]["superseded_by_source_ids"], [successor["id"]])
+        self.assertEqual(read_original(self.store, other["id"], earlier["id"])[0], b"Earlier interpretation.")
+
+    def test_shared_excerpt_does_not_replace_an_imported_primary_document(self):
+        url = "https://www.nature.com/articles/imported-primary-fixture"
+        original = self.add("imported-primary", "Week_1/sources/primary.pdf", b"%PDF-1.4 fixture",
+                            url=url, doi="10.99999/imported-primary")
+        source = self.store.add_source(self.pid, "Reviewed excerpt", "A short source excerpt.", url,
+                                       provenance={"doi": "10.99999/imported-primary"})
+        self.share(source)
+        other = self.store.create_project("Other primary project", "Nd", "Dy")
+        for reference in (url, url + ".pdf", "https://doi.org/10.99999/imported-primary"):
+            self.assertEqual(preview(self.store, other["id"], url=reference)["source_id"], original["id"])
+
+    def test_shared_snapshot_integrity_failure_blocks_preview_and_download(self):
+        own = self.store.add_source(self.pid, "Integrity fixture", "Original reviewed evidence.")
+        shared = self.share(own)
+        with self.store._connect() as db:
+            db.execute("UPDATE library_records SET payload=? WHERE id=?",
+                       (json.dumps({**shared, "text": "Unreviewed replacement."}), "sources:" + shared["id"]))
+        other = self.store.create_project("Other integrity project", "Nd", "Dy")
+        result = preview(self.store, other["id"], source_id=shared["id"])
+        self.assertFalse(result["available"])
+        self.assertFalse(result["original_available"])
+        self.assertFalse(result["text_available"])
+        self.assertIn("SHA-256", result["reason"])
+        with self.assertRaisesRegex(ValueError, "SHA-256"):
+            read_original(self.store, other["id"], shared["id"])
+
     def test_hash_failure_and_traversal_are_never_served(self):
         source = self.add("corrupt", "Week_1/sources/corrupt.pdf", b"%PDF-1.4 unchanged")
         with self.store._connect() as db:

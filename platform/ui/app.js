@@ -734,19 +734,35 @@ async function openTestingBatchForm() {
     source.disabled = false;
   } catch (error) { if (content.isConnected) formError(form, error.message); }
 }
+function sourceLiteratureProvenance(source) {
+  return source.origin === 'reviewed_shared_evidence' ? source.provenance?.record_snapshot?.provenance || {} : source.provenance || {};
+}
+function sourceLabel(source) {
+  if (source.origin === 'reviewed_shared_evidence') return 'Shared evidence';
+  if (source.evidence_kind === 'retrieved_literature_abstract') return 'PubMed citation / abstract';
+  return source.origin === 'user_upload' || source.text ? 'Project evidence' : 'Published source';
+}
 async function loadSources() {
   const projectId = state.project?.id; if (!projectId) return; const data = await api(`/api/projects/${encodeURIComponent(projectId)}/sources`);
   if (state.project?.id !== projectId) return; state.sources = data.sources || [];
   const list = $('#sources-list'); replace(list);
   for (const source of state.sources) {
     const literature = source.evidence_kind === 'retrieved_literature_abstract';
-    const item = button('', () => inspectSource(source), 'source-card'); const type = node('div', 'source-type'); type.append(badge(literature ? 'PubMed citation / abstract' : source.origin === 'user_upload' || source.text ? 'Project evidence' : 'Published source', 'neutral'), node('span', 'muted', '↗')); item.append(type, node('h3', '', source.title || source.id), node('p', '', (source.text || source.excerpt || source.description || 'Open the source record to inspect its reference and provenance.').slice(0, 230)));
+    const provenance = sourceLiteratureProvenance(source);
+    const shared = source.origin === 'reviewed_shared_evidence';
+    const item = button('', () => inspectSource(source), 'source-card'); const type = node('div', 'source-type'); type.append(badge(sourceLabel(source), 'neutral'), node('span', 'muted', '↗')); item.append(type, node('h3', '', source.title || source.id), node('p', '', (source.text || source.excerpt || source.description || 'Open the source record to inspect its reference and provenance.').slice(0, 230)));
     if (literature) {
-      item.append(node('p', 'source-scope', source.provenance?.content_scope || 'Citation and abstract only. Full article not retrieved.'));
-      if (source.provenance?.is_retracted) item.append(badge('Retraction indexed', 'red'));
-      else if (source.provenance?.notices?.length) item.append(badge('Related indexing notices', 'amber'));
+      item.append(node('p', 'source-scope', provenance.content_scope || 'Citation and abstract only. Full article not retrieved.'));
+      if (provenance.is_retracted) item.append(badge('Retraction indexed', 'red'));
+      else if (provenance.notices?.length) item.append(badge('Related indexing notices', 'amber'));
     }
-    const footer = node('div', 'source-footer'); footer.append(node('span', '', date(source.created_at || source.uploaded_at)), node('span', 'mono', (source.sha256 || source.content_hash || '').slice(0, 12))); item.append(footer); list.append(item);
+    if (shared) {
+      item.append(node('p', 'source-scope', source.review_reason ? `Sharing reason: ${source.review_reason}` : 'Available to all projects in this workspace.'));
+      if (source.evidence_kind === 'accepted_experiment_snapshot') item.append(node('p', 'source-scope', 'Experimental snapshot accepted in its originating project. Sharing does not accept it in this project.'));
+      if (source.supersedes_source_id) item.append(badge('Updated shared evidence', 'neutral'));
+      if (source.superseded_by_source_ids?.length) item.append(badge('Newer shared evidence available', 'amber'));
+    }
+    const footer = node('div', 'source-footer'); footer.append(node('span', '', date(source.shared_at || source.created_at || source.uploaded_at)), node('span', 'mono', (source.sha256 || source.content_hash || '').slice(0, 12))); item.append(footer); list.append(item);
   }
   if (!state.sources.length) { const empty = node('div', 'card empty-state'); empty.append(node('h3', '', 'Start with the evidence.'), node('p', '', 'Archive a paper excerpt, laboratory note, or dataset description for this project.')); list.append(empty); }
 }
@@ -839,6 +855,8 @@ async function previewEvidence(reference) {
     if (!content.isConnected) return;
     replace(content, node('h2', 'detail-title', result.title || 'Source evidence'));
     if (result.source_id) content.append(node('p', 'detail-subtitle', result.source_id));
+    const source = result.source && {...result.source, id: result.source_id || result.source.id};
+    const shared = source?.origin === 'reviewed_shared_evidence';
     const actions = node('div', 'detail-actions preview-actions');
     let fileUrl = null;
     if (result.file_url && result.source_id) {
@@ -852,14 +870,29 @@ async function previewEvidence(reference) {
       original.className = 'button'; actions.append(original);
     }
     if (fileUrl && result.original_available) {
-      const download = link('Download file', fileUrl + '?download=1', false); download.className = 'button'; download.removeAttribute('target'); download.download = result.file_name || ''; actions.append(download);
+      const download = link(shared ? 'Download snapshot' : 'Download file', fileUrl + '?download=1', false); download.className = 'button'; download.removeAttribute('target'); download.download = result.file_name || ''; actions.append(download);
     }
-    if (result.hash_verified) actions.append(badge(result.original_available ? 'Original file · hash verified' : 'Archived text · hash verified'));
+    if (result.hash_verified) actions.append(badge(shared ? 'Shared snapshot · hash verified' : result.original_available ? 'Original file · hash verified' : 'Archived text · hash verified'));
     if (actions.childNodes.length) content.append(actions);
-    const source = result.source && {...result.source, id: result.source_id || result.source.id};
+    if (shared) {
+      const provenance = source.provenance || {};
+      content.append(node('p', 'notice', source.verification || 'Shared evidence is available across projects in this workspace. Sharing does not independently validate its claims or accept an experiment in this project.'));
+      const context = {scope: 'Shared across projects in this workspace', source_project: provenance.source_project_id, source_record: `${humanize(provenance.source_record_type)} · ${provenance.source_record_id || 'Not specified'}`, sharing_reason: source.review_reason, shared: date(source.shared_at)};
+      if (source.candidate_id) context.candidate = source.candidate_id;
+      content.append(details('Sharing record', objectDetails(context), true));
+      if (source.supersedes_source_id) content.append(button('Previous shared version', () => previewEvidence({source_id: source.supersedes_source_id}), 'button small-button'));
+      if (source.superseded_by_source_ids?.length) {
+        content.append(node('p', 'notice', 'Newer shared evidence is available. This view preserves the historical snapshot.'));
+        const successors = node('div', 'detail-actions');
+        source.superseded_by_source_ids.forEach((id, index) => successors.append(button(source.superseded_by_source_ids.length === 1 ? 'Open newer shared evidence' : `Open newer shared evidence ${index + 1}`, () => previewEvidence({source_id: id}), 'button small-button')));
+        content.append(successors);
+      }
+      if (source.evidence_kind === 'accepted_experiment_snapshot') content.append(node('p', 'source-note', 'This snapshot was accepted in its originating project. Its conditions and measurements remain evidence to review here; this project’s accepted experiments and rankings are unchanged.'));
+    }
     if (source?.evidence_kind === 'retrieved_literature_abstract') {
-      content.append(node('p', 'notice', source.provenance?.content_scope || 'PubMed citation and abstract. The full article has not been retrieved.'));
-      if (source.provenance?.is_retracted) content.append(node('p', 'notice error', 'A retraction is indexed for this record. Inspect its notices before using the findings.'));
+      const provenance = sourceLiteratureProvenance(source);
+      content.append(node('p', 'notice', provenance.content_scope || 'PubMed citation and abstract. The full article has not been retrieved.'));
+      if (provenance.is_retracted) content.append(node('p', 'notice error', 'A retraction is indexed for this record. Inspect its notices before using the findings.'));
       content.append(link('NLM disclaimer', 'https://pubmed.ncbi.nlm.nih.gov/disclaimer/', false));
     }
     if (canEmbed) {
@@ -900,7 +933,8 @@ async function previewEvidence(reference) {
 function sourceReader(source, projectId = state.project.id, autoRead = false) {
   let nextOffset = null; let reading = false;
   const literature = source.evidence_kind === 'retrieved_literature_abstract';
-  const section = node('section', 'detail-section source-reader'); section.append(node('h3', '', literature ? 'Archived citation and abstract' : 'Archived source text'), node('p', '', literature ? 'Read the citation and available abstract returned by PubMed. Full text has not been retrieved. Saved literature does not automatically become an accepted experimental result.' : 'Read the retained text or search for a phrase. File verification checks its integrity against the saved hash; it does not validate the scientific claims.'));
+  const experiment = source.evidence_kind === 'accepted_experiment_snapshot';
+  const section = node('section', 'detail-section source-reader'); section.append(node('h3', '', literature ? 'Archived citation and abstract' : experiment ? 'Shared experimental snapshot' : 'Archived source text'), node('p', '', literature ? 'Read the citation and available abstract returned by PubMed. Full text has not been retrieved. Saved literature does not automatically become an accepted experimental result.' : 'Read the retained text or search for a phrase. File verification checks its integrity against the saved hash; it does not validate the scientific claims.'));
   const form = node('form'); const label = node('label', 'field', 'Find a phrase in the source (optional)'); const query = node('input'); query.type = 'search'; query.maxLength = 2000; query.placeholder = 'e.g. immobilization or regeneration'; label.append(query); form.append(label);
   const controls = node('div', 'detail-actions'); const read = node('button', 'button', 'Read archived text'); read.type = 'submit';
   const more = button('More', () => readText(nextOffset, true)); more.hidden = true; controls.append(read, more); form.append(controls);

@@ -1,6 +1,7 @@
 """Resolve citations to saved evidence and read verified local preview files.
 
-No external URLs are fetched. Original files stay inside a local evidence ZIP.
+No external URLs are fetched. Original files stay inside a local evidence ZIP;
+project and reviewed shared text snapshots are retained in the database.
 HTML and SVG are never served as active content from the application origin.
 """
 from __future__ import annotations
@@ -67,29 +68,50 @@ def _url_keys(url):
     return keys
 
 
+def _current_matches(sources):
+    """Prefer a matching successor without replacing unrelated source records."""
+    ids = {source.get("id") for source in sources}
+    current = [source for source in sources
+               if source.get("origin") != "reviewed_shared_evidence"
+               or not ids.intersection(source.get("superseded_by_source_ids", []))]
+    # A newly shared excerpt must not displace an existing primary document.
+    # Preserve the order among project/imported records and among shared records.
+    return sorted(current or sources, key=lambda source: source.get("origin") == "reviewed_shared_evidence")
+
+
+def _source_doi(source):
+    provenance = source.get("provenance", {})
+    original = provenance.get("record_snapshot", {})
+    return str(source.get("doi") or provenance.get("doi")
+               or original.get("doi") or original.get("provenance", {}).get("doi", "")).casefold()
+
+
 def _source(store, project_id, source_id=None, url=None):
     sources = store.list_sources(project_id)
     if source_id:
         found = next((row for row in sources if row.get("id") == source_id), None)
         if found is None:
-            raise ValueError("Source not found in this project or the published library")
+            raise ValueError("Source not found in this project or the shared library")
         return found
     _url_parts(url)
     requested = _url_keys(url)
     # An exact artifact URL always wins over the shared parent-paper DOI.
-    exact = [row for row in sources if any(key.startswith("url:") for key in requested & _url_keys(row.get("url")))]
+    exact = _current_matches([row for row in sources if any(key.startswith("url:") for key in requested & _url_keys(row.get("url")))])
     if exact:
         return exact[0]
-    aliases = [row for row in sources if requested & _url_keys(row.get("url"))]
+    aliases = _current_matches([row for row in sources if requested & _url_keys(row.get("url"))])
     if aliases:
         return aliases[0]
     dois = {key[4:] for key in requested if key.startswith("doi:")}
-    matches = [row for row in sources if str(row.get("doi") or row.get("provenance", {}).get("doi", "")).casefold() in dois]
+    matches = _current_matches([row for row in sources if _source_doi(row) in dois])
     primary = [(row, _url_keys(row.get("url"))) for row in matches]
     # Dataset and supplement records can carry the same DOI. Prefer an actual
     # primary article URL, and preserve ambiguity when no primary is identified.
     for prefix in ("nature:", "pmc:"):
         article = [row for row, keys in primary if any(key.startswith(prefix) for key in keys)]
+        original = [row for row in article if row.get("origin") != "reviewed_shared_evidence"]
+        if original:
+            article = original
         if len(article) == 1:
             return article[0]
     return matches[0] if len(matches) == 1 else None
@@ -109,7 +131,8 @@ def _member(source):
 
 def _file_details(source):
     if "text" in source:
-        return "text", "text/plain; charset=utf-8", str(source["id"]) + ".txt"
+        filename = re.sub(r"[^A-Za-z0-9._-]", "_", str(source["id"]))[:170] + ".txt"
+        return "text", "text/plain; charset=utf-8", filename
     _, path = _member(source)
     if path.suffix.lower() not in _TYPES:
         raise ValueError("This original file type is not offered for inline preview or download; use its archived text or linked original")
@@ -121,6 +144,8 @@ def _file_details(source):
 def _read_original(store, source):
     kind, mime, filename = _file_details(source)
     if "text" in source:
+        if not isinstance(source["text"], str):
+            raise ValueError("Archived source text must be UTF-8 text")
         raw = source["text"].encode("utf-8")
     else:
         member, _ = _member(source)
@@ -172,7 +197,14 @@ def preview(store, project_id, url=None, source_id=None):
               "mime_type": None, "original_available": False, "text_available": False, "hash_verified": False}
     if source is None:
         return {**result, "reason": "This citation has no unambiguous saved source in this project. You can open its original website explicitly or archive its text for preview."}
-    result.update(source={key: value for key, value in source.items() if key != "text"},
+    metadata = {key: value for key, value in source.items() if key != "text"}
+    # Shared snapshots retain their original record for traceability. Do not
+    # duplicate its potentially large text in a metadata-only preview response.
+    provenance = metadata.get("provenance")
+    if isinstance(provenance, dict) and isinstance(provenance.get("record_snapshot"), dict):
+        metadata["provenance"] = {**provenance, "record_snapshot": {
+            key: value for key, value in provenance["record_snapshot"].items() if key != "text"}}
+    result.update(source=metadata,
                   source_id=source["id"], title=source.get("title", source["id"]), url=source.get("url") or url or "")
     original_error = None
     try:
