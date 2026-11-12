@@ -93,7 +93,9 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--data",required=True)
     parser.add_argument("--allow-build",action="store_true")
+    parser.add_argument("--tool-allowlist",default=None)
     args=parser.parse_args()
+    allowed=None if args.tool_allowlist is None else set(filter(None,args.tool_allowlist.split(",")))
     store,registry=Store(Path(args.data)),Registry(Path(args.data))
     for line in sys.stdin:
         try:
@@ -102,11 +104,13 @@ def main():
             method=request.get("method")
             if method=="initialize":
                 result={"protocolVersion":"2024-11-05","capabilities":{"tools":{"listChanged":False}},"serverInfo":{"name":"lanm-research","version":"0.1.0"}}
-            elif method=="tools/list": result={"tools":definitions(args.allow_build)}
+            elif method=="tools/list": result={"tools":[t for t in definitions(args.allow_build) if allowed is None or t["name"] in allowed]}
             elif method=="ping": result={}
             elif method=="tools/call":
                 params=request["params"]
                 try:
+                    if allowed is not None and params["name"] not in allowed:
+                        raise ValueError("This tool is not available in this evaluation")
                     value=dispatch(store,registry,params["name"],params.get("arguments",{}),args.allow_build)
                     result={"content":[{"type":"text","text":json.dumps(value,ensure_ascii=False,allow_nan=False)}],"isError":False}
                 except Exception as exc:

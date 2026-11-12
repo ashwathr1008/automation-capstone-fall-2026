@@ -131,6 +131,8 @@ def run_case(suite, case, model, timeout=300, runtime_factory=Runtime):
             with job.condition:
                 events = deepcopy(job.events)
                 answer = job.text
+                result["trace"] = deepcopy(getattr(job, "trace", []))
+                result["metrics"] = deepcopy(getattr(job, "metrics", {}))
             terminal = next((e for e in reversed(events) if e.get("type") in {"done", "error"}), {})
             status = ("timeout" if timed_out else "error" if terminal.get("type") == "error"
                       else "completed" if job.done else "incomplete")

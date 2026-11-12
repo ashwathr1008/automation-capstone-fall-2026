@@ -16,7 +16,7 @@ from . import __version__
 from .config import UI_DIRECTORY,data_directory
 from .core import Store
 from .methods import Registry,BUILTIN
-from .runtime import Runtime
+from .providers import ProfileRuntime as Runtime
 from .evidence import preview,read_original
 from . import guidance
 

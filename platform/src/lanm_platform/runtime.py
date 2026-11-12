@@ -129,6 +129,10 @@ class Job:
         self.thread_id=None
         self.turn_id=None
         self.runtime=None
+        self.trace=[]
+        self.metrics={"provider":"codex", "requested_model":model,
+                      "first_token_seconds":None, "total_seconds":None,
+                      "tool_call_count":0, "token_usage":None}
 
     def emit(self,type,text=None,**extra):
         with self.condition:
@@ -147,9 +151,10 @@ class Job:
             self.condition.notify_all()
 
 class Rpc:
-    def __init__(self,data_dir,mode):
+    def __init__(self,data_dir,mode,tool_allowlist=None):
         self.data_dir=Path(data_dir).expanduser().resolve()
         self.mode=mode
+        self.tool_allowlist=tool_allowlist
         self.work=self.data_dir/"workspaces"/mode
         self.work.mkdir(parents=True,exist_ok=True)
         self.process=None
@@ -166,6 +171,8 @@ class Rpc:
             if self.process and self.process.poll() is None: return
             mcp_args=[str(Path(__file__).with_name("mcp.py")),"--data",str(self.data_dir)]
             if self.mode=="build": mcp_args.append("--allow-build")
+            if self.tool_allowlist is not None:
+                mcp_args.extend(["--tool-allowlist", ",".join(sorted(self.tool_allowlist))])
             overrides={
                 "mcp_servers.lanm.command":sys.executable,
                 "mcp_servers.lanm.args":mcp_args,
@@ -175,8 +182,20 @@ class Rpc:
                 "mcp_servers.lanm.env.PYTHONUTF8":"1",
                 "mcp_servers.lanm.env.PYTHONIOENCODING":"utf-8",
                 "model_reasoning_effort":"medium",
-                "web_search":"live",
+                "web_search":"disabled" if self.tool_allowlist is not None else "live",
             }
+            if self.tool_allowlist is not None:
+                overrides["features.shell_tool"]=False
+                # The comparison must not inherit extra execution/integration
+                # servers from the person's normal Codex configuration.
+                import tomllib
+                config_home=Path(os.environ.get("CODEX_HOME") or Path.home()/".codex")
+                config_file=config_home/"config.toml"
+                if config_file.is_file():
+                    config=tomllib.loads(config_file.read_text(encoding="utf-8"))
+                    for server in config.get("mcp_servers", {}):
+                        if server != "lanm":
+                            overrides[f"mcp_servers.{server}.enabled"]=False
             command=[codex_binary(),"app-server","--stdio"]
             for key,value in overrides.items(): command.extend(["-c",key+"="+json.dumps(value)])
             self.process=subprocess.Popen(command,cwd=self.work,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
@@ -252,6 +271,8 @@ class Rpc:
         if not job or job.finished: return
         if method=="turn/started": job.turn_id=p.get("turn",{}).get("id")
         elif method=="item/agentMessage/delta":
+            if job.metrics.get("first_token_seconds") is None:
+                job.metrics["first_token_seconds"]=round(time.monotonic()-job.created,3)
             item_id=p.get("itemId") or p.get("item_id")
             if item_id and job.message_item and item_id != job.message_item: job.emit("text","\n\n")
             if item_id: job.message_item=item_id
@@ -259,15 +280,48 @@ class Rpc:
         elif method=="item/started":
             item=p.get("item",{})
             kind=item.get("type","")
-            if kind=="mcpToolCall": job.emit("activity",f"Using {item.get('tool','scientific tool')}")
+            if kind=="mcpToolCall":
+                job.emit("activity",f"Using {item.get('tool','scientific tool')}")
+                job.trace.append({"type":"tool_started", "id":item.get("id"),
+                                  "server":item.get("server"),
+                                  "name":item.get("tool"), "arguments":item.get("arguments"),
+                                  "elapsed_seconds":round(time.monotonic()-job.created,3)})
             elif kind=="webSearch": job.emit("activity","Checking scientific sources")
             elif kind=="commandExecution": job.emit("activity","Running a method-development check")
             elif kind=="reasoning": job.emit("activity","Considering the evidence and assumptions")
         elif method=="item/completed":
             item=p.get("item",{})
+            if item.get("type")=="mcpToolCall":
+                result=item.get("result")
+                error=item.get("error")
+                status=item.get("status")
+                success=(False if error or status=="failed" or (isinstance(result,dict) and result.get("isError"))
+                         else True if status=="completed" else None)
+                job.trace.append({"type":"tool_call", "id":item.get("id"),
+                                  "server":item.get("server"),
+                                  "name":item.get("tool"), "arguments":item.get("arguments"),
+                                  "result":result, "error":error,
+                                  "status":status, "success":success,
+                                  "elapsed_seconds":round(time.monotonic()-job.created,3),
+                                  "duration_ms":item.get("durationMs")})
+                job.metrics["tool_call_count"]+=1
+            elif item.get("type") in {"webSearch", "commandExecution", "fileChange"}:
+                job.trace.append({"type":"native_tool", "kind":item.get("type"), "id":item.get("id")})
             if item.get("type")=="agentMessage" and not job.text:
                 text=item.get("text","")
                 if text: job.emit("text",text)
+        elif method=="thread/tokenUsage/updated":
+            usage=p.get("tokenUsage",{}).get("total",{})
+            job.metrics["token_usage_scope"]="thread_cumulative; isolated comparisons use a fresh thread"
+            job.metrics["token_usage"]={"prompt_tokens":usage.get("inputTokens"),
+                                         "completion_tokens":usage.get("outputTokens"),
+                                         "total_tokens":usage.get("totalTokens"),
+                                         "cached_input_tokens":usage.get("cachedInputTokens"),
+                                         "reasoning_output_tokens":usage.get("reasoningOutputTokens")}
+        elif method=="model/rerouted":
+            job.metrics["reported_model"]=p.get("toModel")
+            job.trace.append({"type":"model_rerouted", "from_model":p.get("fromModel"),
+                              "to_model":p.get("toModel"), "reason":p.get("reason")})
         elif method=="error":
             err=p.get("error",{})
             if not p.get("willRetry",False): job.finish("error",err.get("message","Agent request failed"))
@@ -287,12 +341,13 @@ class Rpc:
             except subprocess.TimeoutExpired: self.process.kill()
 
 class Runtime:
-    def __init__(self,store,data_dir):
+    def __init__(self,store,data_dir,tool_allowlist=None):
         self.store=store
         self.data_dir=Path(data_dir).expanduser().resolve()
         self.clients={}
         self.jobs={}
         self.lock=threading.RLock()
+        self.tool_allowlist=tool_allowlist
         self.thread_path=self.data_dir/"runtime_threads.json"
         try: self.threads=json.loads(self.thread_path.read_text())
         except (OSError,ValueError): self.threads={}
@@ -319,12 +374,20 @@ class Runtime:
         threading.Thread(target=self._run,args=(job,project),daemon=True).start()
         return job
 
+    def reset_thread(self, project_id, mode):
+        """Bootstrap from saved conversation after another backend contributed."""
+        with self.lock:
+            self.threads.pop(project_id+":"+mode, None)
+            temporary=self.thread_path.with_suffix(".tmp")
+            temporary.write_text(json.dumps(self.threads), encoding="utf-8")
+            temporary.replace(self.thread_path)
+
     def _run(self,job,project):
         client=None
         try:
             job.emit("activity","Connecting to the research runtime")
             with self.lock:
-                client=self.clients.setdefault(job.mode,Rpc(self.data_dir,job.mode))
+                client=self.clients.setdefault(job.mode,Rpc(self.data_dir,job.mode,self.tool_allowlist))
             job.runtime=client
             client.start()
             if job.cancelled:
@@ -365,6 +428,10 @@ class Runtime:
                 context["recent_conversation"]=[{"role":m["role"],"content":m["content"][-6000:]} for m in self.store.messages(job.project_id)[-9:-1]]
             instructions=SCIENCE_INSTRUCTIONS+(BUILD_INSTRUCTIONS if job.mode=="build" else "Analysis mode: use existing registered methods. If a new implementation is needed, explain that the user can switch to Build mode.")
             prompt=instructions+"\n\nCURRENT VERIFIED APPLICATION STATE:\n"+json.dumps(context,ensure_ascii=False,default=str)+"\n\nUSER MESSAGE:\n"+job.message
+            if self.tool_allowlist is not None:
+                prompt="Use only the provided LanM scientific tools. Do not use shell, web search, files, or other integrations.\n\n"+prompt
+            job.trace.append({"type":"model_request", "requested_model":job.model,
+                              "prompt":prompt, "native_thread_resumed":not new_thread})
             job.emit("activity","Reading the current project context")
             response=client.request("turn/start",{"threadId":thread_id,"model":job.model,"input":[{"type":"text","text":prompt}],"approvalPolicy":"never"},timeout=60)
             job.turn_id=response.get("turn",{}).get("id",job.turn_id)
@@ -387,6 +454,8 @@ class Runtime:
                     self.store.add_message(job.project_id,"assistant",job.text+("\n\n[Turn interrupted; completed changes remain saved.]" if job.cancelled else ""))
             except Exception as exc:
                 job.terminal={"type":"error","text":"The response could not be saved: "+str(exc)}
+            job.metrics["total_seconds"]=round(time.monotonic()-job.created,3)
+            job.metrics["status"]=(job.terminal or {}).get("status",(job.terminal or {}).get("type","completed"))
             job.emit(**(job.terminal or {"type":"done","status":"completed"}))
 
     def cancel(self,job_id):

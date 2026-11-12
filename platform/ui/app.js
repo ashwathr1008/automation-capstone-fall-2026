@@ -152,9 +152,9 @@ function setMode(mode) {
 async function loadStatus() {
   state.runtime = await api('/api/status');
   const data = state.runtime;
-  const available = data.codex_available ?? data.codex?.available ?? data.runtime?.available ?? data.available;
+  const available = data.available ?? data.codex_available ?? data.codex?.available ?? data.runtime?.available;
   $('#runtime-dot').className = 'status-dot ' + (available ? 'ready' : 'unavailable');
-  $('#runtime-label').textContent = available ? (data.connected ? 'Agent connected' : 'Agent available') : 'Agent unavailable';
+  $('#runtime-label').textContent = available ? (data.connected ? 'Agent connected' : 'Agent configured') : 'Agent unavailable';
   $('#runtime-description').textContent = available ? 'Connects when a conversation starts' : 'Saved data and calculations available';
   $('#app-version').textContent = data.version || data.installed_version || '';
   $('#runtime-notice').textContent = available ? 'Calculations use saved inputs and explicit method versions.' : 'Agent connection is unavailable. Saved evidence and direct calculations remain accessible.';

@@ -2,6 +2,8 @@
 /research-data/
 /release-assets/
 /archive/
+/local-inference/
+/benchmark-results/
 # Presentations, including sources and exported copies, stay local.
 /platform/presentation/
 **/[Pp]resentation*/

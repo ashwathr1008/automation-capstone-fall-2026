@@ -1,0 +1,12 @@
+{
+  "profiles": [
+    {"id":"codex-default", "name":"Codex · Sol", "backend":"codex", "model":"gpt-6.1-sol"},
+    {"id":"qwen-local", "name":"Local Qwen3.5 4B", "backend":"compatible", "model":"qwen3.5-4b", "base_url":"http://127.0.0.1:18080/v1", "enable_thinking":false, "max_output_tokens":4096, "request_timeout":180, "max_tool_rounds":12},
+    {"id":"qwen-9b-local", "name":"Local Qwen3.5 9B", "backend":"compatible", "model":"qwen3.5-9b", "base_url":"http://127.0.0.1:18081/v1", "enable_thinking":false, "max_output_tokens":4096, "request_timeout":180, "max_tool_rounds":12},
+    {"id":"qwen-4b-thinking", "name":"Local Qwen3.5 4B · thinking", "backend":"compatible", "model":"qwen3.5-4b", "base_url":"http://127.0.0.1:18080/v1", "enable_thinking":true, "max_output_tokens":4096, "request_timeout":180, "max_tool_rounds":12},
+    {"id":"qwen-9b-thinking", "name":"Local Qwen3.5 9B · thinking", "backend":"compatible", "model":"qwen3.5-9b", "base_url":"http://127.0.0.1:18081/v1", "enable_thinking":true, "max_output_tokens":4096, "request_timeout":180, "max_tool_rounds":12},
+    {"id":"qwen-4b-grounded", "name":"Local Qwen3.5 4B · domain context", "backend":"compatible", "model":"qwen3.5-4b", "base_url":"http://127.0.0.1:18080/v1", "domain_grounding":true, "enable_thinking":false, "max_output_tokens":4096, "request_timeout":180, "max_tool_rounds":12},
+    {"id":"qwen-9b-grounded", "name":"Local Qwen3.5 9B · domain context", "backend":"compatible", "model":"qwen3.5-9b", "base_url":"http://127.0.0.1:18081/v1", "domain_grounding":true, "enable_thinking":false, "max_output_tokens":4096, "request_timeout":180, "max_tool_rounds":12},
+    {"id":"deepseek", "name":"DeepSeek API", "backend":"compatible", "model":"deepseek-flash", "base_url":"https://api.deepseek.com", "api_key_env":"DEEPSEEK_API_KEY"}
+  ]
+}
