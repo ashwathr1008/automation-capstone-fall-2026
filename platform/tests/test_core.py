@@ -82,6 +82,7 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(rank["eligible_count"], 1)
         self.assertEqual(rank["rows"][0]["candidate_id"], "o-36")
         result = self.store.calculate(self.pid, "o-36")
+        self.assertEqual(rank["method_version"], result["method_version"])
         self.assertEqual(result["assumptions"]["collected_target_kg_per_l_cycle"], .001)
         self.assertEqual(result["assumptions"]["usable_lifetime_cycles"], 100)
         self.assertEqual(self.store.list_candidates(self.pid, pool="untested")["total"], 615)

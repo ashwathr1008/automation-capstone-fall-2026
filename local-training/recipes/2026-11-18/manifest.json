@@ -1,0 +1,122 @@
+{
+  "date": "2026-11-18",
+  "purpose": "Exact original recipe source and compact provenance before portable setup changes. These snapshots are for audit; their original relative-path assumptions are retained. Raw data, model weights and machine runtime state are excluded.",
+  "source_revision_before_uncommitted_work": "ac21978b1a9865b51bcc96f75117bd9cc620386d",
+  "files": [
+    {
+      "path": "local-training/base-lineage.json",
+      "sha256": "fabab8c2da52637f2d6eeb071790b8e7628cfb19c01c040e9e1b43d614ed4ac0",
+      "bytes": 2033
+    },
+    {
+      "path": "local-training/bootstrap_env.sh",
+      "sha256": "265e1813d690128d04ff58dbcb33033000c7a235c9bb50a8832d74c5e310a2d2",
+      "bytes": 2262
+    },
+    {
+      "path": "local-training/check_platform_integration.py",
+      "sha256": "73ae47c1ca1a9681c410a9f874ab9d46aa1c1a4bb8781b5cc35196f0fb47d065",
+      "bytes": 9646
+    },
+    {
+      "path": "local-training/environment-lock.txt",
+      "sha256": "62fa75e0efea293d8dbc476e050291455ddd13c228ee23eb12e57e6eea8b7d89",
+      "bytes": 1969
+    },
+    {
+      "path": "local-training/export_adapter.py",
+      "sha256": "c6c7098a73d474e13c5bb2fc4dc454324fe33ab4e24996ee795c7289b9697866",
+      "bytes": 5320
+    },
+    {
+      "path": "local-training/post_training_queue.py",
+      "sha256": "006f065b4457ab182e4ca289526035cb1f3bb04316bd31cd97dfe5582797927d",
+      "bytes": 18866
+    },
+    {
+      "path": "local-training/prepare_lanm_training.py",
+      "sha256": "e23a44057a2305f98b0ef4612206c191a597820cb28b771b5a6d2ae2a92726a9",
+      "bytes": 46489
+    },
+    {
+      "path": "local-training/provision_training.py",
+      "sha256": "6d15c969e5ae293cccca109ef291dab562ad38b6ebfde4015679c18e4018b300",
+      "bytes": 7506
+    },
+    {
+      "path": "local-training/register_trained_profiles.py",
+      "sha256": "c6119eb41bcb3269ae6a342d9cda13463cd9c925d4a10edd376f67f42070555a",
+      "bytes": 5763
+    },
+    {
+      "path": "local-training/review_token_masks.py",
+      "sha256": "7e5ead9f8f0d7cac722be2527fa0df8e14cb38b337bf2ecff05bf3e75dc0c5be",
+      "bytes": 6789
+    },
+    {
+      "path": "local-training/run_training.sh",
+      "sha256": "ad60d834f195550389e3fb4c0155a5ccff50c011c366d6d07f148ee1755a7526",
+      "bytes": 612
+    },
+    {
+      "path": "local-training/start-trained-qwen.ps1",
+      "sha256": "0e6ddbe15043d430ced09f93b16069a4e56e3b01d7f647151c6aa8cd70b3104c",
+      "bytes": 3034
+    },
+    {
+      "path": "local-training/stop-trained-qwen.ps1",
+      "sha256": "2114b50176b612f4d8e56582d26e5e9e086ba122aa11c47630557d98ea553d9e",
+      "bytes": 1263
+    },
+    {
+      "path": "local-training/train_lanm.py",
+      "sha256": "098e2f38fe3266cefe44cefc45ee8f1edf8be19a628db51ff874cfe8d4f077f8",
+      "bytes": 19782
+    },
+    {
+      "path": "local-training/training-plan.json",
+      "sha256": "3e16362ba944dedbf6a0046a706ffc51005d88dbc7940c1473607136d5ba291d",
+      "bytes": 3326
+    },
+    {
+      "path": "local-training/training-results.json",
+      "sha256": "f36a4bd5e7aeb88554a314e1fc8eedb34bc2b407b02a3bc6d84b50a4a2ec8dbc",
+      "bytes": 8102
+    },
+    {
+      "path": "local-training/verify_compiler.py",
+      "sha256": "cb7cce2b8e7216d28dcc1f88d020d0b4db92cb054962b984da76e93fbba5d2d5",
+      "bytes": 1434
+    },
+    {
+      "path": "local-training/verify_gpu_runtime.py",
+      "sha256": "d56bf968b7a31e3757fd6f4fcbc625782ed8097e07ed887c3d111c840ab35538",
+      "bytes": 1216
+    },
+    {
+      "path": "local-training/verify_token_masks.py",
+      "sha256": "de55b5489e0ff53886e16a9962079a356271807f7fa99746ec4c98c4e8dcbf48",
+      "bytes": 2663
+    },
+    {
+      "path": "local-training/DATASET.md",
+      "sha256": "63a06c3b4491fd9b04d6f17edcc81c6cf7c3987df34b21b4fbf7b50c19de7edf",
+      "bytes": 6888
+    },
+    {
+      "path": "local-training/compiler-provenance.json",
+      "sha256": "c985ae827eeef1932002e0fc26ebfc6e71702c1d8b408b6369a73780d9688bd1",
+      "bytes": 619
+    },
+    {
+      "path": "local-training/converter-provenance.json",
+      "sha256": "f5b3d7fcc6270b137de66bdf2e92039741c14610821cfcc9857555fdaaee1f92",
+      "bytes": 280
+    }
+  ],
+  "omitted_original_documentation": {
+    "path": "local-training/README.md",
+    "sha256": "9db8626d5c6e0ec6438cadd87ea7b26076229202262de6df24e21246c1041759",
+    "reason": "Original narrative contains a personal workstation directory. Active setup instructions use a portable clone-relative workflow."
+  }
+}

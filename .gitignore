@@ -2,7 +2,15 @@
 /research-data/
 /release-assets/
 /archive/
-/local-inference/
+/local-inference/*
+!/local-inference/README.md
+!/local-inference/provision.py
+!/local-inference/provision-9b.py
+!/local-inference/smoke-test.py
+!/local-inference/start-qwen.ps1
+!/local-inference/start-qwen-9b.ps1
+!/local-inference/stop-qwen.ps1
+!/local-inference/stop-qwen-9b.ps1
 /benchmark-results/
 # Presentations, including sources and exported copies, stay local.
 /platform/presentation/

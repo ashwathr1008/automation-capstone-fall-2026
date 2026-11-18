@@ -26,11 +26,17 @@ _SPEC = importlib.util.spec_from_file_location("lanm_scientific_evaluation", Pat
 science = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(science)
 
-VERSION = "1.0.0"
+_WORKFLOW_SPEC = importlib.util.spec_from_file_location("lanm_workflow_evaluation", Path(__file__).with_name("workflow_cases.py"))
+workflows = importlib.util.module_from_spec(_WORKFLOW_SPEC)
+_WORKFLOW_SPEC.loader.exec_module(workflows)
+
+VERSION = "2.0.0"
 # Keep local state-changing tools: respecting a hypothetical request should be
 # observable instead of forced by removing the ability to change assumptions.
 LOCAL_TOOLS = sorted(item["name"] for item in definitions(False)
                      if item["name"] not in {"search_pubmed", "fetch_pubmed", "promote_shared_evidence", "list_projects", "create_project"})
+BUILD_TOOLS = sorted(set(LOCAL_TOOLS) | {item["name"] for item in definitions(True)
+                                       if item["name"] not in {tool["name"] for tool in definitions(False)}})
 OBJECTIVE_CASES = [
     {"id": "tool_economics", "title": "Saved economic calculation with collected mass basis",
      "question": "Calculate and save the current economic scenario using calculate_economics. Report the required aggregate bed volume and productivity with units. The collected mass is already after recovery losses. Do not change any inputs or create experiments.",
@@ -62,7 +68,7 @@ def output_path(value):
 
 def public_profile(profile):
     """Configuration identity only; credentials never belong in a report."""
-    keys = {"id", "name", "backend", "model", "base_url", "api_key_env", "request_timeout", "max_tool_rounds", "enable_thinking", "max_output_tokens", "domain_grounding"}
+    keys = {"id", "name", "backend", "model", "base_url", "api_key_env", "request_timeout", "max_tool_rounds", "enable_thinking", "max_output_tokens", "domain_grounding", "effort"}
     result = {key: deepcopy(value) for key, value in profile.items() if key in keys}
     metadata_keys = {"checkpoint", "revision", "quantization", "context_length", "thinking", "temperature", "seed", "server_version", "hardware"}
     result["metadata"] = {key: deepcopy(value) for key, value in profile.get("metadata", {}).items() if key in metadata_keys}
@@ -71,7 +77,7 @@ def public_profile(profile):
 
 def all_cases(suite):
     return [{**case, "category": "scientific_review"} for case in suite["cases"]] + [
-        {**case, "category": "objective_tool_contract"} for case in OBJECTIVE_CASES]
+        {**case, "category": "objective_tool_contract"} for case in OBJECTIVE_CASES + workflows.CASES]
 
 
 def semantic_state(project):
@@ -118,8 +124,9 @@ def check_objective(case_id, initial, final, runs, selections, batches, context)
                        "basis": "0.0005 kg/L/cycle * (24/8) cycles/day = 0.0015 kg/L/day; 0.1 / 0.0015 = 66.6666667 L. Checks tool output, not answer wording."})
     elif case_id == "tool_hypothetical":
         matching = [run for run in runs if run.get("kind") == "rank" and run.get("is_hypothetical")
-                    and run.get("scenario", {}).get("assumption_overrides", {}).get("usable_lifetime_cycles") == 50
-                    and run.get("scenario", {}).get("configuration_overrides", {}).get("support") == "hypothetical support"
+                    and run.get("scenario", {}).get("assumption_overrides") == {"usable_lifetime_cycles": 50}
+                    and run.get("scenario", {}).get("configuration_overrides") == {"support": "hypothetical support"}
+                    and run.get("scenario", {}).get("exclude_candidate_ids") == []
                     and run.get("pool") == "untested" and len(run.get("rows", [])) == 3]
         checks.append({"id": "requested_hypothetical_snapshot_saved", "passed": bool(matching),
                        "basis": "Saved untested ranking has both exact requested overrides and three displayed rows."})
@@ -183,7 +190,8 @@ def run_objective_case(case, profile, timeout, runtime_factory):
                 events, answer = deepcopy(job.events), job.text
                 trace, metrics = deepcopy(getattr(job, "trace", [])), deepcopy(getattr(job, "metrics", {}))
             terminal = next((e for e in reversed(events) if e.get("type") in {"done", "error"}), {})
-            status = ("timeout" if timed_out else "error" if terminal.get("type") == "error"
+            status = ("timeout" if timed_out else "cancelled" if terminal.get("status") in {"cancelled", "interrupted"}
+                      else "error" if terminal.get("type") == "error"
                       else "completed" if job.done else "incomplete")
             result.update(status=result.get("status", status), answer=answer, events=events, trace=trace,
                           metrics=metrics, terminal=terminal, job_id=job.id, thread_id=job.thread_id)
@@ -204,6 +212,102 @@ def trace_facts(trace):
     return {"record_count": len(calls), "explicit_success_records": succeeded,
             "explicit_failure_records": failed, "outcome_unknown_records": len(calls) - succeeded - failed,
             "qualification": "Recorded tool outcomes only; counts are not scientific accuracy or source entailment."}
+
+
+def aggregate_turn_metrics(turns):
+    metrics = [turn.get("metrics", {}) for turn in turns]
+    result = {"turn_count": len(turns), "first_token_seconds": metrics[0].get("first_token_seconds") if metrics else None,
+              "reported_models": sorted({m["reported_model"] for m in metrics if m.get("reported_model")})}
+    for key in ("total_seconds", "model_seconds", "tool_seconds", "request_count", "tool_call_count"):
+        values = [m.get(key) for m in metrics]
+        result[key] = sum(values) if values and all(isinstance(v, (int, float)) for v in values) else None
+    # Codex reports cumulative thread usage; summing turns would count earlier tokens twice.
+    cumulative = bool(metrics) and all(str(m.get("token_usage_scope", "")).startswith("thread_cumulative") for m in metrics)
+    usages = [metrics[-1].get("token_usage")] if cumulative else [m.get("token_usage") for m in metrics]
+    complete = bool(usages) and all(isinstance(u, dict) and all(isinstance(u.get(k), (int, float))
+                    for k in ("prompt_tokens", "completion_tokens", "total_tokens")) for u in usages)
+    complete = complete and all(m.get("token_usage_complete", True) is not False for m in metrics)
+    result["token_usage_complete"] = complete
+    result["token_usage"] = ({k: sum(u[k] for u in usages) for k in ("prompt_tokens", "completion_tokens", "total_tokens")}
+                              if complete else None)
+    result["token_usage_scope"] = "final_thread_cumulative" if cumulative else "sum_of_turn_usage_when_complete"
+    return result
+
+
+def run_workflow_case(case, profile, timeout, runtime_factory):
+    """Run every scripted turn in one isolated project and preserve intermediate violations."""
+    started = time.monotonic()
+    mode = case.get("mode", "research")
+    result = {"id": case["id"], "title": case["title"], "question": case["question"],
+              "model": profile["model"], "mode": mode, "turns": [], "trace": [], "events": [],
+              "scientific_review": science.review_template(case)}
+    with tempfile.TemporaryDirectory(prefix="lanm-workflow-comparison-") as temporary:
+        store = Store(temporary)
+        pid, context, prompts = workflows.setup(store, case)
+        initial = workflows.snapshot(store, pid)
+        result.update(prompt=prompts[0], prompts=prompts, fixture_context=context, initial_state=initial)
+        runtime = runtime_factory(store, Path(temporary))
+        deadline = time.monotonic() + timeout
+        intermediate_checks = []
+        try:
+            for index, prompt in enumerate(prompts):
+                turn = {"turn_index": index + 1, "prompt": prompt}
+                job, timed_out = None, False
+                turn_started = time.monotonic()
+                try:
+                    if time.monotonic() >= deadline:
+                        turn.update(status="timeout", error="Case deadline reached before next turn")
+                        result["turns"].append(turn)
+                        break
+                    job = runtime.submit(pid, prompt, mode=mode, model=profile["model"])
+                    while not job.done:
+                        with job.condition:
+                            job.condition.wait(timeout=min(0.5, max(0.001, deadline - time.monotonic())))
+                        if time.monotonic() >= deadline and not job.done:
+                            timed_out = True
+                            runtime.cancel(job.id)
+                            break
+                    if timed_out:
+                        runtime.close()
+                    with job.condition:
+                        events, answer = deepcopy(job.events), job.text
+                        trace = deepcopy(getattr(job, "trace", []))
+                        metrics = deepcopy(getattr(job, "metrics", {}))
+                    terminal = next((e for e in reversed(events) if e.get("type") in {"done", "error"}), {})
+                    status = ("timeout" if timed_out else "cancelled" if terminal.get("status") in {"cancelled", "interrupted"}
+                              else "error" if terminal.get("type") == "error"
+                              else "completed" if job.done else "incomplete")
+                    turn.update(status=status, answer=answer, events=events, trace=trace, metrics=metrics,
+                                terminal=terminal, job_id=job.id, thread_id=job.thread_id)
+                except Exception as exc:
+                    turn.update(status="error", error=str(exc))
+                turn["elapsed_seconds"] = round(time.monotonic() - turn_started, 6)
+                current = workflows.snapshot(store, pid)
+                turn["state"] = current
+                if hasattr(workflows, "check_turn"):
+                    checks = workflows.check_turn(case["id"], index, initial, current, context)
+                    turn["objective_checks"] = checks
+                    intermediate_checks.extend({**check, "id": f"turn_{index + 1}:" + check["id"]}
+                                               for check in checks.get("checks", []))
+                result["turns"].append(turn)
+                result["trace"].extend({**entry, "turn_index": index + 1} for entry in turn.get("trace", []))
+                result["events"].extend({**entry, "turn_index": index + 1} for entry in turn.get("events", []))
+                if turn["status"] != "completed":
+                    break
+        finally:
+            runtime.close()
+        final = workflows.snapshot(store, pid)
+        facts = workflows.check(case["id"], initial, final, context, trace=result["trace"])
+        facts["checks"] = intermediate_checks + facts["checks"]
+        result.update(final_state=final, objective_checks=facts, metrics=aggregate_turn_metrics(result["turns"]),
+                      answer="\n\n".join(turn.get("answer", "") for turn in result["turns"]),
+                      elapsed_seconds=round(time.monotonic() - started, 6))
+        statuses = [turn["status"] for turn in result["turns"]]
+        result["status"] = (next((status for status in statuses if status != "completed"), "incomplete")
+                            if len(statuses) != len(prompts) or any(status != "completed" for status in statuses)
+                            else "completed")
+    result["temporary_project_removed"] = True
+    return result
 
 
 def percentile(values, proportion):
@@ -254,12 +358,17 @@ def main(argv=None):
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument("--case", action="append", default=[])
     selection.add_argument("--all", action="store_true")
+    selection.add_argument("--workflows", action="store_true", help="Select all 16 objective platform workflows")
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--timeout", type=float, default=300)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--profiles-file", type=Path, help="Explicit benchmark profiles without changing application settings")
+    parser.add_argument("--resume", action="store_true", help="Continue missing attempts in an identical report; do not retry failures")
     args = parser.parse_args(argv)
     suite = science.load_suite()
     cases = all_cases(suite)
+    if args.workflows:
+        cases = [case for case in cases if case["category"] == "objective_tool_contract"]
     unknown = set(args.case) - {case["id"] for case in cases}
     if unknown:
         parser.error("Unknown cases: " + ", ".join(sorted(unknown)))
@@ -268,7 +377,7 @@ def main(argv=None):
     if not math.isfinite(args.timeout) or args.timeout <= 0:
         parser.error("--timeout must be finite and positive")
     cases = [case for case in cases if not args.case or case["id"] in args.case]
-    configured = load_profiles()
+    configured = load_profiles(args.profiles_file) if args.profiles_file else load_profiles()
     by_id = {profile["id"]: profile for profile in configured}
     unknown_profiles = set(args.profile) - set(by_id)
     if unknown_profiles:
@@ -279,8 +388,10 @@ def main(argv=None):
             print(case["id"] + ": " + case["title"])
         print("Profiles: " + ", ".join(by_id) + ". No model requests made.")
         return 0
-    if args.run and not (args.case or args.all):
-        parser.error("--run requires --case ID or --all")
+    if args.run and not (args.case or args.all or args.workflows):
+        parser.error("--run requires --case ID, --all, or --workflows")
+    if args.resume and not args.run:
+        parser.error("--resume requires --run")
     if args.run and not profiles:
         parser.error("--run requires at least one configured --profile ID")
     if not args.output:
@@ -289,7 +400,9 @@ def main(argv=None):
         destination = output_path(args.output)
     except ValueError as exc:
         parser.error(str(exc))
-    spec_bytes = json.dumps(OBJECTIVE_CASES, sort_keys=True).encode("utf-8")
+    if destination.exists() and not args.resume:
+        parser.error("Output already exists; choose a new filename or use --resume")
+    spec_bytes = json.dumps(OBJECTIVE_CASES + workflows.CASES, sort_keys=True).encode("utf-8")
     report = {
         "suite_id": "lanm_provider_comparison", "version": VERSION,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -297,11 +410,15 @@ def main(argv=None):
         "scientific_cases_sha256": hashlib.sha256(science.CASES_PATH.read_bytes()).hexdigest(),
         "objective_cases_sha256": hashlib.sha256(spec_bytes).hexdigest(),
         "harness_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "scientific_runner_sha256": hashlib.sha256(Path(science.__file__).read_bytes()).hexdigest(),
+        "workflow_implementation_sha256": hashlib.sha256(Path(workflows.__file__).read_bytes()).hexdigest(),
         "implementation_sha256": {name: hashlib.sha256((ROOT / "src" / "lanm_platform" / name).read_bytes()).hexdigest()
-                                  for name in ["runtime.py", "compatible_runtime.py", "providers.py", "grounding.py", "guidance.py", "mcp.py", "core.py", "economics.py", "data/candidates.json.gz", "data/lanm_handbook.md"]
+                                  for name in ["runtime.py", "compatible_runtime.py", "claude_runtime.py", "providers.py", "grounding.py", "guidance.py", "mcp.py", "methods.py", "method_worker.py", "core.py", "economics.py", "data/candidates.json.gz", "data/lanm_handbook.md"]
                                   if (ROOT / "src" / "lanm_platform" / name).is_file()},
         "profiles": [public_profile(profile) for profile in profiles], "repeat": args.repeat,
-        "timeout_seconds": args.timeout, "local_tool_allowlist": LOCAL_TOOLS,
+        "timeout_seconds": args.timeout, "local_tool_allowlist": LOCAL_TOOLS, "build_tool_allowlist": BUILD_TOOLS,
+        "selected_case_ids": [case["id"] for case in cases],
+        "planned_attempts": len(cases) * len(profiles) * args.repeat,
         "environment": {"python": platform.python_version(), "platform": platform.platform()},
         "comparison_scope": "Development fixture comparison, not an independent or expert-validated benchmark. Same case templates and setup; fresh project/source IDs differ per run. Compatible runtime uses bounded native platform tools; Codex agent capabilities may differ. Inspect runtime metrics and traces before attributing differences to model weights.",
         "timing_scope": "One new runtime per case; provider order is reversed on alternate repeats. Server-side model warmness, queueing, caching and remote hardware are not controlled. First-token latency is unknown unless explicitly measured by the runtime.",
@@ -309,6 +426,27 @@ def main(argv=None):
                             "review_required": True, "reason": "These cases and derived answers are excluded from training; reviewed outputs require a separate training collection."},
         "results": [],
     }
+    if args.resume:
+        if not destination.is_file():
+            parser.error("There is no report to resume")
+        previous = json.loads(destination.read_text(encoding="utf-8"))
+        identity = ("version", "scientific_cases_sha256", "objective_cases_sha256", "harness_sha256", "scientific_runner_sha256",
+                    "workflow_implementation_sha256", "implementation_sha256", "profiles", "repeat",
+                    "timeout_seconds", "selected_case_ids", "local_tool_allowlist", "build_tool_allowlist")
+        changed = [key for key in identity if previous.get(key) != report.get(key)]
+        if changed:
+            parser.error("Cannot resume a different benchmark configuration: " + ", ".join(changed))
+        report = previous
+        report["status"] = "running"
+        report.setdefault("resumed_at", []).append(datetime.now(timezone.utc).isoformat())
+    expected_keys = {(p["id"], c["id"], rep + 1) for p in profiles for c in cases for rep in range(args.repeat)}
+    try:
+        result_keys = [(r["profile_id"], r["id"], r["repetition"]) for r in report["results"]]
+    except (KeyError, TypeError):
+        parser.error("Existing report has malformed attempts")
+    completed_keys = set(result_keys)
+    if len(completed_keys) != len(result_keys) or not completed_keys <= expected_keys:
+        parser.error("Existing report has duplicate or out-of-plan attempts")
     science.save_report(destination, report)
     if args.prepare:
         for case in cases:
@@ -320,11 +458,15 @@ def main(argv=None):
         for repetition in range(args.repeat):
             for case in cases:
                 for order, profile in enumerate(ordered_profiles(profiles, repetition)):
+                    if (profile["id"], case["id"], repetition + 1) in completed_keys:
+                        continue
                     print(f"Repeat {repetition + 1}: {profile['id']} / {case['id']}", flush=True)
                     try:
-                        factory = runtime_factory_for(profile, tool_allowlist=LOCAL_TOOLS)
+                        factory = runtime_factory_for(profile, tool_allowlist=BUILD_TOOLS if case.get("mode") == "build" else LOCAL_TOOLS)
                         result = (science.run_case(suite, case, profile["model"], args.timeout, runtime_factory=factory)
                                   if case["category"] == "scientific_review"
+                                  else run_workflow_case(case, profile, args.timeout, factory)
+                                  if case["id"] in {item["id"] for item in workflows.CASES}
                                   else run_objective_case(case, profile, args.timeout, factory))
                     except Exception as exc:
                         result = {"id": case["id"], "status": "error", "error": str(exc),
@@ -339,7 +481,7 @@ def main(argv=None):
         report["status"] = "run_finished"
     science.save_report(destination, report)
     print("Report: " + str(destination))
-    return 1 if any(result["status"] in {"error", "timeout", "incomplete"} for result in report["results"]) else 0
+    return 1 if any(result["status"] in {"error", "timeout", "incomplete", "cancelled"} for result in report["results"]) else 0
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ import math
 from copy import deepcopy
 
 METHOD_ID = "separation_unit_tea"
-METHOD_VERSION = "1.0.0"
+METHOD_VERSION = "1.0.1"
 
 # Values are illustrative scenario estimates, not properties of any candidate.
 PARAMETERS = {
@@ -115,8 +115,6 @@ def _evaluate(values: dict) -> dict:
                "initial_material_inventory_cost_usd": x["prepared_material_cost_usd_per_l"] * bed,
                "capital_recovery_factor": crf, "calendar_service_life_years": n / annual_cycles,
                "nonmaterial_cost_usd_per_kg": (total - material) / annual_target}
-    if not all(math.isfinite(v) for v in summary.values()):
-        raise ValueError("Scenario exceeds supported finite numeric range")
     if x["product_price_usd_per_kg"] > 0:
         summary["assumed_product_value_usd_per_year"] = x["product_price_usd_per_kg"] * annual_target
         summary["conditional_separation_margin_usd_per_year"] = summary["assumed_product_value_usd_per_year"] - total
@@ -139,6 +137,8 @@ def _evaluate(values: dict) -> dict:
         summary["target_feed_kg_per_l_cycle"] = offered
     elif feed_keys & set(x):
         uncertainties.append("Only part of the feed specification is available; feed mass balance was not checked.")
+    if not all(math.isfinite(v) for v in summary.values()):
+        raise ValueError("Scenario exceeds supported finite numeric range")
     return {"method_id": METHOD_ID, "method_version": METHOD_VERSION, "summary": summary,
             "cost_breakdown": [{"name": name, "annual_cost_usd": cost, "cost_usd_per_kg": cost / annual_target} for name, cost in components],
             "assumptions": deepcopy(x), "units": dict(UNITS), "boundary": deepcopy(BOUNDARY),
@@ -162,10 +162,11 @@ def break_even_lifetime(values: dict, ceiling: float | None = None, *, summary=N
     if summary is None:
         summary = evaluate(x)["summary"]
     remaining = ceiling - summary["nonmaterial_cost_usd_per_kg"]
-    if remaining <= 0:
+    material_cost = x["prepared_material_cost_usd_per_l"]
+    if remaining < 0 or (remaining == 0 and material_cost > 0):
         return {"status": "unattainable_by_reuse_alone", "required_cycles": None, "ceiling_usd_per_kg": ceiling,
                 "reason": "Other separation-unit costs already meet or exceed the allowance."}
-    ratio = x["prepared_material_cost_usd_per_l"] / (x["collected_target_kg_per_l_cycle"] * remaining)
+    ratio = material_cost / (x["collected_target_kg_per_l_cycle"] * remaining) if material_cost else 0.0
     nearest = round(ratio)
     if math.isclose(ratio, nearest, rel_tol=1e-12, abs_tol=1e-12):
         ratio = nearest

@@ -1,0 +1,6 @@
+{
+  "url": "https://api.github.com/repos/ggml-org/llama.cpp/tarball/93cf736a8d1d46aa922e27eb64aa712bcd5ebc30",
+  "commit": "93cf736a8d1d46aa922e27eb64aa712bcd5ebc30",
+  "sha256": "d67691cdcb86bdecc0dff803a91856f2d583a8c229abad839adcff69eb7d1c39",
+  "runtime": "llama.cpp b12323"
+}

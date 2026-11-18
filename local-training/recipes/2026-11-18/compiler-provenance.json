@@ -1,0 +1,10 @@
+{
+  "url": "https://ziglang.org/download/0.15.2/zig-x86_64-linux-0.15.2.tar.xz",
+  "sha256": "02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f93239",
+  "version": "0.15.2",
+  "scope": "Portable clang C/C++ wrapper for Triton; workspace only",
+  "wsl_cuda_driver": "/usr/lib/wsl/lib/libcuda.so.1",
+  "link_compatibility": "Map GNU exact-library -l:libcuda.so.1 flag to the existing absolute WSL driver path for Zig",
+  "cc_wrapper_sha256": "72f54e6483cac39ec9b8433823bc6c1b1fc2ba6c8011455b1d029699cc31a9a1",
+  "cxx_wrapper_sha256": "486d126d91437371008d2a0bb7388d38604bc8cf5b9eb4a171b3f39e769e3d37"
+}

@@ -66,3 +66,26 @@ python evaluations/compare.py --run --profile qwen-9b-local --profile qwen-9b-gr
 ```
 
 These are development cases that have already informed implementation decisions, not an untouched final test. A small pilot can show concrete improvements or regressions, but cannot establish frontier-model parity. The next reliable comparison requires unseen tasks, repeated runs and blinded domain review.
+
+## Expanded platform workflow benchmark
+
+For a fresh clone, run `python local-training/prepare_workspace.py` from the repository root to create local profile/configuration files without replacing existing settings. Use `benchmark-results/local-comparison/profiles.json` with `--profiles-file`, or copy and customize `local-training/profiles.example.json`. Exact hosted model access depends on your signed-in account. Install figure-export dependencies with `python -m pip install -e "./platform[evaluations]"`.
+
+`compare.py --workflows` selects sixteen objective workflows: the four original tasks above plus twelve cases in `workflow_cases.py`. The new cases cover archived evidence extraction, conflicting sources, shared and candidate-specific assumptions, sensitivity, draft and accepted experiment records, mismatched experimental conditions, explicit scale predictions, registered-method reuse, method authoring, and clarification before export. Three workflows have two scripted user turns in the same project and runtime. The method-authoring case uses Build mode for every provider; the other cases use Research mode.
+
+Each provider receives the same case text, fixture values, scientific instructions, and mode-appropriate LanM tools. Fresh generated record IDs differ. Reference actors verify that every case is achievable and that no-op behavior fails. Intermediate checks retain premature experiment acceptance or export even when a later turn fixes the final state. Authored methods also receive independent numerical and invalid-input checks. These checks establish specified software behavior, not comprehensive answer correctness or scientific validity.
+
+```powershell
+python platform/evaluations/compare.py --prepare --workflows --profiles-file benchmark-results/profiles.json --profile qwen-local --profile codex-astra --repeat 3 --output benchmark-results/protocol.json
+python platform/evaluations/compare.py --run --workflows --profiles-file benchmark-results/profiles.json --profile qwen-local --repeat 3 --timeout 300 --output benchmark-results/qwen4.json
+python platform/evaluations/compare.py --run --workflows --profiles-file benchmark-results/profiles.json --profile codex-astra --repeat 3 --timeout 300 --output benchmark-results/astra.json
+python platform/evaluations/summarize_comparison.py benchmark-results/qwen4.json benchmark-results/astra.json --output benchmark-results/summary.json
+```
+
+Run these commands from the repository root. An explicit profiles file does not change the application's model selector. Outputs are saved after each attempt. Existing output files are refused unless `--resume` is supplied; resumption requires identical cases, profiles, implementation hashes, repetition count and timeout, and continues only missing attempts. Failed attempts are retained rather than silently retried. The timeout applies to the entire case, including all scripted turns.
+
+Claude Code subscription access is supported through profiles such as `{"id":"claude-sonnet","backend":"claude","model":"claude-sonnet-5-5","effort":"medium"}`. Use an exact model ID verified on the installed account. The CLI must be signed in; `LANM_CLAUDE_BINARY` can select its executable. The adapter disables native tools and unrelated MCP integrations and uses the same LanM tool implementations. It transmits the isolated case's context and saved conversation through the user's Claude account. No API key is stored in the profile. Codex keeps its native conversation thread within a multi-turn case; compatible endpoints and Claude receive bounded saved platform history. These are documented differences between configured systems.
+
+The summarizer writes model, case, tool, tool-failure and task-failure CSV tables plus detailed JSON. It separates successful tasks with recovered tool errors, failed tasks with no tool errors, failed calls, unknown call outcomes, runtime failures and timeouts. Missing provider usage is unknown. Codex cumulative thread usage is counted once; Claude input totals include separately reported cache tokens. Provider token accounting and estimated costs remain qualified, and subscription usage is not presented as a measured charge.
+
+Freeze the cases and implementation before the final runs. Keep preflight checks separate, retain all repetitions, run local models without overlapping GPU inference, and report quantization, context limits, thinking settings, exact model IDs and runtime differences. Three repetitions across sixteen tasks provide descriptive workflow evidence; they do not establish performance across arbitrary scientific questions. Inspect saved answers and citations separately before making scientific-quality claims.

@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Template for a fresh local comparison; recorded results and training artifacts are not included.",
+  "configurations": [
+    {
+      "profile_id": "qwen-local",
+      "display_name": "Qwen 4B · base · thinking off",
+      "group": "Qwen 4B",
+      "training": "base",
+      "thinking": "off",
+      "model": "qwen3.5-4b",
+      "checkpoint": "Qwen3.5-4B Q4_K_M"
+    },
+    {
+      "profile_id": "qwen-4b-thinking",
+      "display_name": "Qwen 4B · base · thinking on",
+      "group": "Qwen 4B",
+      "training": "base",
+      "thinking": "on",
+      "model": "qwen3.5-4b",
+      "checkpoint": "Qwen3.5-4B Q4_K_M"
+    },
+    {
+      "profile_id": "qwen-4b-trained",
+      "display_name": "Qwen 4B · trained · thinking off (not provisioned)",
+      "group": "Qwen 4B",
+      "training": "planned",
+      "thinking": "off",
+      "model": "qwen3.5-4b-lanm",
+      "checkpoint": "Qwen3.5-4B Q4_K_M + LanM LoRA",
+      "notes": "Registration replaces this label only after validating an actual learned adapter."
+    },
+    {
+      "profile_id": "qwen-4b-trained-thinking",
+      "display_name": "Qwen 4B · trained · thinking on (not provisioned)",
+      "group": "Qwen 4B",
+      "training": "planned",
+      "thinking": "on",
+      "model": "qwen3.5-4b-lanm",
+      "checkpoint": "Qwen3.5-4B Q4_K_M + LanM LoRA",
+      "notes": "Registration replaces this label only after validating an actual learned adapter."
+    },
+    {
+      "profile_id": "qwen-9b-local",
+      "display_name": "Qwen 9B · base · thinking off",
+      "group": "Qwen 9B",
+      "training": "base",
+      "thinking": "off",
+      "model": "qwen3.5-9b",
+      "checkpoint": "Qwen3.5-9B Q4_K_M"
+    },
+    {
+      "profile_id": "qwen-9b-thinking",
+      "display_name": "Qwen 9B · base · thinking on",
+      "group": "Qwen 9B",
+      "training": "base",
+      "thinking": "on",
+      "model": "qwen3.5-9b",
+      "checkpoint": "Qwen3.5-9B Q4_K_M"
+    },
+    {
+      "profile_id": "qwen-9b-trained",
+      "display_name": "Qwen 9B · trained · thinking off (not provisioned)",
+      "group": "Qwen 9B",
+      "training": "planned",
+      "thinking": "off",
+      "model": "qwen3.5-9b-lanm",
+      "checkpoint": "Qwen3.5-9B Q4_K_M + LanM LoRA",
+      "notes": "Registration replaces this label only after validating an actual learned adapter."
+    },
+    {
+      "profile_id": "qwen-9b-trained-thinking",
+      "display_name": "Qwen 9B · trained · thinking on (not provisioned)",
+      "group": "Qwen 9B",
+      "training": "planned",
+      "thinking": "on",
+      "model": "qwen3.5-9b-lanm",
+      "checkpoint": "Qwen3.5-9B Q4_K_M + LanM LoRA",
+      "notes": "Registration replaces this label only after validating an actual learned adapter."
+    },
+    {
+      "profile_id": "claude-sonnet",
+      "display_name": "Sonnet 5.5",
+      "group": "Frontier",
+      "training": "not_applicable",
+      "thinking": "provider default",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "profile_id": "claude-opus",
+      "display_name": "Opus 5.5",
+      "group": "Frontier",
+      "training": "not_applicable",
+      "thinking": "provider default",
+      "model": "claude-opus-5-5"
+    },
+    {
+      "profile_id": "codex-default",
+      "display_name": "GPT-6.1 Sol",
+      "group": "Frontier",
+      "training": "not_applicable",
+      "thinking": "provider default",
+      "model": "gpt-6.1-sol"
+    },
+    {
+      "profile_id": "codex-astra",
+      "display_name": "GPT-6 Astra",
+      "group": "Frontier",
+      "training": "not_applicable",
+      "thinking": "provider default",
+      "model": "gpt-6-astra"
+    }
+  ]
+}

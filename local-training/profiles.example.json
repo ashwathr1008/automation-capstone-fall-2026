@@ -1,0 +1,122 @@
+{
+  "profiles": [
+    {
+      "id": "codex-default",
+      "name": "Codex Â· Sol",
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "metadata": {}
+    },
+    {
+      "id": "codex-astra",
+      "name": "Codex Â· Astra",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "metadata": {}
+    },
+    {
+      "id": "qwen-local",
+      "name": "Local Qwen3.5 4B",
+      "backend": "compatible",
+      "model": "qwen3.5-4b",
+      "base_url": "http://127.0.0.1:18080/v1",
+      "request_timeout": 180,
+      "max_tool_rounds": 12,
+      "metadata": {
+        "checkpoint": "Qwen3.5-4B",
+        "quantization": "Q4_K_M",
+        "context_length": 32768,
+        "thinking": false,
+        "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+        "temperature": 0.2,
+        "seed": 42,
+        "server_version": "llama.cpp b12323 CUDA12.4"
+      },
+      "enable_thinking": false,
+      "max_output_tokens": 4096
+    },
+    {
+      "id": "qwen-9b-local",
+      "name": "Local Qwen3.5 9B",
+      "backend": "compatible",
+      "model": "qwen3.5-9b",
+      "base_url": "http://127.0.0.1:18081/v1",
+      "request_timeout": 180,
+      "max_tool_rounds": 12,
+      "metadata": {
+        "checkpoint": "Qwen3.5-9B",
+        "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+        "quantization": "Q4_K_M",
+        "context_length": 32768,
+        "thinking": false,
+        "temperature": 0.2,
+        "seed": 42,
+        "server_version": "llama.cpp b12323 CUDA12.4"
+      },
+      "enable_thinking": false,
+      "max_output_tokens": 4096
+    },
+    {
+      "id": "claude-sonnet",
+      "name": "Claude Sonnet 5.5",
+      "backend": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "request_timeout": 300,
+      "max_tool_rounds": 12,
+      "metadata": {}
+    },
+    {
+      "id": "claude-opus",
+      "name": "Claude Opus 5.5",
+      "backend": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "request_timeout": 300,
+      "max_tool_rounds": 12,
+      "metadata": {}
+    },
+    {
+      "id": "qwen-4b-thinking",
+      "name": "Local Qwen3.5 4B · thinking",
+      "backend": "compatible",
+      "model": "qwen3.5-4b",
+      "base_url": "http://127.0.0.1:18080/v1",
+      "request_timeout": 180,
+      "max_tool_rounds": 12,
+      "metadata": {
+        "checkpoint": "Qwen3.5-4B",
+        "quantization": "Q4_K_M",
+        "context_length": 32768,
+        "thinking": true,
+        "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+        "temperature": 0.2,
+        "seed": 42,
+        "server_version": "llama.cpp b12323 CUDA12.4"
+      },
+      "enable_thinking": true,
+      "max_output_tokens": 4096
+    },
+    {
+      "id": "qwen-9b-thinking",
+      "name": "Local Qwen3.5 9B · thinking",
+      "backend": "compatible",
+      "model": "qwen3.5-9b",
+      "base_url": "http://127.0.0.1:18081/v1",
+      "request_timeout": 180,
+      "max_tool_rounds": 12,
+      "metadata": {
+        "checkpoint": "Qwen3.5-9B",
+        "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+        "quantization": "Q4_K_M",
+        "context_length": 32768,
+        "thinking": true,
+        "temperature": 0.2,
+        "seed": 42,
+        "server_version": "llama.cpp b12323 CUDA12.4"
+      },
+      "enable_thinking": true,
+      "max_output_tokens": 4096
+    }
+  ]
+}

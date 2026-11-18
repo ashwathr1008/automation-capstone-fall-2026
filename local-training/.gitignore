@@ -1,0 +1,32 @@
+# Generated training assets and local environments stay on this computer.
+.venv/
+bin/
+cache/
+data/
+downloads/
+models/
+python/
+review-python/
+tmp/
+vendor/
+adapters/
+checkpoints/
+outputs/
+runs/
+attempts/
+exports/
+export-checks/
+*.log
+*.pid
+uv-provenance.json
+# Generated machine state; reviewed recipe metadata is explicitly retained.
+/*.json
+!base-lineage.json
+!training-plan.json
+!training-results.json
+!profiles.example.json
+!analysis-configurations.example.json
+*.lock
+*.before-trained-profiles
+*.registration-tmp
+environment-installed.txt

@@ -1,0 +1,11 @@
+{
+  "checked_at": "2026-11-18",
+  "status": "matching_declared_base_with_repository_history_support",
+  "models": [
+    {"size":"4B","official_repo":"Qwen/Qwen3.5-4B","official_revision":"851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a","official_last_modified":"2026-03-02T00:52:52.000Z","conversion_repo":"unsloth/Qwen3.5-4B-GGUF","conversion_revision":"e87f176479d0855a907a41277aca2f8ee7a09523","conversion_last_modified":"2026-03-02T14:08:17.000Z","declared_conversion_base":"Qwen/Qwen3.5-4B","baseline_gguf_sha256":"00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4"},
+    {"size":"9B","official_repo":"Qwen/Qwen3.5-9B","official_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","official_last_modified":"2026-03-02T00:51:43.000Z","conversion_repo":"unsloth/Qwen3.5-9B-GGUF","conversion_revision":"3885219b6810b007914f3a7950a8d1b469d598a5","conversion_last_modified":"2026-03-02T14:08:36.000Z","declared_conversion_base":"Qwen/Qwen3.5-9B","baseline_gguf_sha256":"03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8"}
+  ],
+  "interpretation":"Both downloaded official revisions are still the latest official revisions, predate the pinned GGUF conversion commits on the same release day, and match the base models explicitly declared by the conversion repositories. This supports using the downloaded checkpoints as the same base family/release. Exact bytewise unquantized reconstruction from an existing lossy GGUF is not possible; conversion manifests do not themselves specify an original weights commit.",
+  "weight_hashes":"See models/Qwen3.5-4B/download-manifest.json and models/Qwen3.5-9B/download-manifest.json; all downloaded LFS assets are SHA256 verified.",
+  "sources":["https://huggingface.co/api/models/Qwen/Qwen3.5-4B/commits/main","https://huggingface.co/api/models/Qwen/Qwen3.5-9B/commits/main","https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/tree/e87f176479d0855a907a41277aca2f8ee7a09523","https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/tree/3885219b6810b007914f3a7950a8d1b469d598a5"]
+}

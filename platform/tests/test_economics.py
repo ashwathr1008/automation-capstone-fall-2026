@@ -62,6 +62,25 @@ class EconomicsTests(unittest.TestCase):
         self.assertGreater(result["rows"][0]["cost_usd_per_kg"], result["rows"][1]["cost_usd_per_kg"])
         self.assertIn("not a statistical", result["interpretation"])
 
+    def test_break_even_at_nonmaterial_cost_requires_free_material(self):
+        # The independent reference case costs 31.1 USD/kg without replacement.
+        values = {**self.case(), "prepared_material_cost_usd_per_l": 0,
+                  "cost_ceiling_usd_per_kg": 31.1}
+        result = economics.evaluate(values)
+        self.assertAlmostEqual(result["summary"]["cost_usd_per_kg"], 31.1)
+        self.assertEqual(result["break_even_lifetime"]["status"], "conditional")
+        self.assertEqual(result["break_even_lifetime"]["required_cycles"], 1)
+        self.assertEqual(economics.break_even_lifetime(values, ceiling=31)["status"],
+                         "unattainable_by_reuse_alone")
+        self.assertEqual(economics.break_even_lifetime(self.case(), ceiling=31.1)["status"],
+                         "unattainable_by_reuse_alone")
+
+    def test_optional_revenue_and_feed_outputs_must_remain_finite(self):
+        for change in ({"product_price_usd_per_kg": 1e308},
+                       {"feed_target_kg_per_l": 1e308, "feed_volume_l_per_l_cycle": 1e308}):
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, "finite numeric range"):
+                economics.evaluate({**self.case(), **change})
+
     def test_validation_rejects_unphysical_and_unknown_inputs(self):
         for change in ({"cycle_time_hours": 0}, {"usable_lifetime_cycles": -1}, {"product_purity_fraction": 95},
                        {"equipment_cost_usd": math.inf}, {"discount_rate": True}, {"screen_score_as_capacity": 1},

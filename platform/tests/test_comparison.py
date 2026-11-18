@@ -114,7 +114,7 @@ class ComparisonTests(unittest.TestCase):
                 self.assertEqual(comparison.main([]), 0)
                 self.assertEqual(comparison.main(["--prepare", "--all", "--output", str(destination)]), 0)
             report = json.loads(destination.read_text(encoding="utf-8"))
-            self.assertEqual(len(report["results"]), 13)
+            self.assertEqual(len(report["results"]), 13 + len(comparison.workflows.CASES))
             self.assertTrue(all(r["status"] == "not_run" for r in report["results"]))
             self.assertFalse(report["training_policy"]["training_eligible"])
 

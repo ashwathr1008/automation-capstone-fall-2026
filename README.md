@@ -2,6 +2,8 @@
 
 A local LanM research platform for exploring rare-earth separation with a shared scientific library and reusable calculation methods.
 
+For a complete installation and presentation rehearsal, see [Aldair's setup and demo walkthrough](ALDAIR_SETUP_AND_DEMO.md).
+
 ## Included
 
 - The research application, browser interface, tests, and documentation.
@@ -25,6 +27,8 @@ python platform/launch.py --open-browser
 Restoring installs the starter database and custom methods. The first launch creates a fresh exploration project, ready for your research. The application uses the bundled source evidence automatically for verified previews and downloads.
 
 On Windows, **Launch LanM Research.cmd** also opens the application. Keep the server window open while using http://127.0.0.1:8765; Ctrl+C stops it. Conversation features use the local Codex installation and its sign-in. See the [platform instructions](platform/README.md) for research features and runtime configuration.
+
+Optional local Qwen serving is documented in [local-inference](local-inference/README.md). Actual LanM adapter training, profile setup and validation are documented in [local-training](local-training/README.md). Those source utilities are included; downloaded weights, learned adapters and local conversations are provisioned separately. Claude and Codex profiles use your own installed CLI and account access.
 
 To create a separate workspace, use `python scripts/research_snapshot.py restore --target-dir PATH_TO_EMPTY_FOLDER`, then launch with `python platform/launch.py --data-dir PATH_TO_EMPTY_FOLDER/research-data --open-browser`.
 

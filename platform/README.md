@@ -4,6 +4,14 @@ A local research workspace for lanmodulin-based rare-earth separation. It combin
 
 The platform currently uses a simplified separation unit. It can explore candidate-specific scenarios when process measurements are missing. A protein's screening profile does not supply its recovery, capacity, or useful lifetime.
 
+## Role in ARGUS
+
+[ARGUS](https://github.com/halimv/ARGUS) combines this repository as the `automation-capstone-fall-2026` submodule with PreCheck and AHC. Its protocol dashboard retains its original layout and links to the full LanM Research/Build workspace, which ARGUS manages as a separate local service. That workspace provides conversation, persistent projects and library evidence, experiment records, separation-unit economics, sensitivity analysis, and registered or newly authored calculation methods. Existing local research data and chats remain in their configured workspace.
+
+The protocol adapter also uses untested-candidate ranking and its own screening-contrast heuristic to assign assay concentrations. That protocol step does not calculate process costs or establish economic feasibility. Opening the complete workspace makes the research tools available; it does not automatically validate scientific claims, accept measurements or carry out every laboratory step.
+
+The economic tools are an early-stage, conditional techno-economic model of a separation unit: declared output, cycle time, material lifetime, and cost inputs determine required inventory and cost per kilogram. Their purpose is to compare scenarios and identify useful performance targets. They do not establish whole-plant profitability or validated scale-up performance.
+
 ## Open the application
 
 For a fresh clone, follow the [setup instructions](../README.md) to restore the starter database and methods. The first launch creates a fresh exploration project. From `platform/`, double-click **Launch LanM Research.cmd**, or run:
@@ -27,6 +35,10 @@ For an isolated comparison with full answers, observable tool traces, timings an
 For Qwen endpoints that support chat-template thinking controls, a profile can set `enable_thinking` to `true` or `false` and `max_output_tokens` to a completion budget. Thinking consumes part of that budget and can increase latency. The local thinking profiles use 4,096 completion tokens. The adapter keeps reasoning text out of saved answers and traces, recording only its character count when the server returns it separately. These endpoint-specific options should not be added to an API that does not support them.
 
 A compatible profile can also set `domain_grounding` to `true`. This frozen-weight mode automatically supplies up to three exact, hash-verified excerpts from the active project's sources and published/shared library, two handbook sections, and relevant existing workflow guidance. Retrieval uses deterministic lexical matching with a 10,000-character packet limit; IDs, character locators and truncation flags are saved in the turn trace. It makes no network requests and does not train a model. Models can still call evidence tools for more detail. Retrieval improves access to material but does not establish that an answer is scientifically correct. The local selector includes separate **domain context** profiles for 4B and 9B so the option can be compared without changing their weights.
+
+Actual LanM fine-tuning is handled by the separate [local training utilities](../local-training/README.md). They train Qwen 4B and 9B LoRA adapters from verified tool examples and selected paper evidence, retain separate validation data, and export learned adapters for the same inference runtime. After completed artifacts pass validation, `register_trained_profiles.py --run` adds **LanM trained** choices with thinking off and on while preserving existing profiles. Start an adapter with `../local-training/start-trained-qwen.ps1 -Size 4B` or `-Size 9B`, then restart an already-running platform to load the new choices. The trained aliases use ports 18082 and 18083. Weights, adapters and local research data remain outside Git; a fresh clone must provision them separately. Training and evaluation records distinguish learned weights from retrieval and from scientific validation.
+
+Claude Code is also supported through profiles with `backend: "claude"`, an exact account-supported model ID, and an optional effort setting. It uses the installed CLI's sign-in and the LanM tool implementations. `LANM_CLAUDE_BINARY` can select the CLI executable. The configured laptop profiles use Sonnet and Opus; a different account must verify its own access. Remote models receive the conversation context and tool results needed for the request.
 
 ## Try these questions
 
@@ -168,4 +180,4 @@ Run these commands from `platform/`. Tests use temporary scientific state. `test
 
 The compact [scientific evaluation set](evaluations/README.md) covers evidence use and LanM decision-making. It runs in isolated temporary projects and separates automatic structural checks from a human scientific rubric. Model responses remain unreviewed until someone evaluates their scientific reasoning; completing a run does not establish superiority over another agent.
 
-The private GitHub repository provides the application, starter library, reusable methods, and supporting evidence. The application and working database run locally on the computer that launches them. Shared hosting requires an authenticated deployment and an appropriate model-access arrangement.
+The GitHub repository provides the application, starter library, reusable methods, and supporting evidence. The application and working database run locally on the computer that launches them. Shared hosting requires an authenticated deployment and an appropriate model-access arrangement.

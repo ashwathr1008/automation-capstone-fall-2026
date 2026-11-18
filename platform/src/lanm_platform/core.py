@@ -425,7 +425,7 @@ class Store:
                                          "revision": project["revision"], "configuration": project["configuration"]})
 
     def calculate(self, project_id, candidate_id=None, method_id=None):
-        if method_id not in {None, economics.METHOD_ID, "separation_unit_tea@1.0.0"}:
+        if method_id not in {None, economics.METHOD_ID, f"{economics.METHOD_ID}@{economics.METHOD_VERSION}"}:
             raise ValueError("Use the method registry executor for a custom method; this endpoint evaluates separation_unit_tea")
         project = self._project(project_id)
         if candidate_id:
@@ -672,7 +672,8 @@ class Store:
                     "total_evaluated": len(candidates), "pool_count": count, "eligible_count": len(rows),
                     "excluded_count": len(exclusions), "exclusions": exclusions, "rationale": rationale,
                     "assumptions": assumptions, "revision": project["revision"], "method_id": "screening_priority_v1" if pool == "untested" else economics.METHOD_ID,
-                    "method_version": "1.0.0", "configuration": project["configuration"],
+                    "method_version": "1.0.0" if pool == "untested" else economics.METHOD_VERSION,
+                    "configuration": project["configuration"],
                     "committed_configuration": committed_configuration, "scenario": scenario, "is_hypothetical": hypothetical,
                     "uncertainties": ["Profile contrast is not a separation factor, capacity, recovery or process prediction.",
                                       "Technical screening SD does not establish independent reproducibility or rank confidence.",
