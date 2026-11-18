@@ -8,8 +8,10 @@ const vm = require('node:vm');
 const integration = require('../ui/integration.js');
 
 function element() {
+  const classes = new Set();
   return {value: '', hidden: false, disabled: false, open: false, dataset: {}, children: [], attributes: {},
-    classList: {add() {}, remove() {}, toggle() {}},
+    classList: {add: name => classes.add(name), remove: name => classes.delete(name), contains: name => classes.has(name),
+      toggle(name, value) { const enabled = value === undefined ? !classes.has(name) : value; if (enabled) classes.add(name); else classes.delete(name); return enabled; }},
     setAttribute(key, value) { this.attributes[key] = value; }, append(...items) { this.children.push(...items); },
     replaceChildren(...items) { this.children = items; }, addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }};
 }
@@ -38,7 +40,9 @@ function browser(url) {
 
 async function run() {
   const origin = 'http://127.0.0.1:8780';
-  assert.deepEqual(integration.context(new URL(origin + '/research/?embed=argus'), true), {prefix: '/research', embedded: true});
+  assert.deepEqual(integration.context(new URL(origin + '/research/?embed=argus'), true), {prefix: '/research', embedded: true, compact: false});
+  assert.deepEqual(integration.context(new URL(origin + '/research/?embed=argus&compact=1'), true), {prefix: '/research', embedded: true, compact: true});
+  assert.equal(integration.context(new URL(origin + '/?embed=argus&compact=1'), true).compact, false);
   assert.equal(integration.context(new URL(origin + '/?embed=argus'), true).embedded, false);
   assert.equal(integration.context(new URL(origin + '/research/?embed=argus'), false).embedded, false);
   assert.equal(integration.apiPath('/api/projects?a=1', '/research'), '/research/api/projects?a=1');
@@ -58,6 +62,36 @@ async function run() {
     {origin, source: parent, data: {...command, view: '__proto__'}}, {origin, source: parent, data: {...command, projectId: '../other'}},
     {origin, source: parent, data: {...command, projectId: 12}}, {origin, source: parent, data: {type: 'other'}}
   ]) assert.equal(integration.selectionMessage(event, parent, origin), null);
+
+  const layout = {type: 'argus:research-layout', expanded: true};
+  assert.deepEqual(integration.layoutMessage({origin, source: parent, data: layout}, parent, origin), {expanded: true});
+  for (const event of [
+    {origin: 'https://example.com', source: parent, data: layout}, {origin, source: {}, data: layout},
+    {origin, source: parent, data: {...layout, expanded: 'true'}}, {origin, source: parent, data: {type: 'other'}}
+  ]) assert.equal(integration.layoutMessage(event, parent, origin), null);
+
+  const compact = browser(origin + '/research/?embed=argus&compact=1');
+  compact.evaluate('initializeEmbedding(); state.initialized = true;');
+  assert.equal(compact.evaluate('document.title'), 'Oracle · ARGUS');
+  assert.equal(compact.evaluate('assistantName'), 'Oracle');
+  assert.equal(compact.evaluate(`document.body.classList.contains('argus-compact')`), true);
+  compact.evaluate(`state.project = {id: 'kept'}; state.mode = 'build'; state.job = {id: 'running'};`);
+  compact.events.message({origin, source: compact.parent, data: layout});
+  assert.equal(compact.evaluate(`document.body.classList.contains('argus-compact')`), false);
+  assert.equal(compact.evaluate('state.project.id'), 'kept');
+  assert.equal(compact.evaluate('state.mode'), 'build');
+  assert.equal(compact.evaluate('state.job.id'), 'running');
+  assert.equal(compact.requests.length, 0, 'Expanding must not reload, fetch or submit a model request.');
+  compact.events.message({origin: 'https://example.com', source: compact.parent, data: {...layout, expanded: false}});
+  assert.equal(compact.evaluate(`document.body.classList.contains('argus-compact')`), false);
+  compact.events.keydown({key: 'Escape'});
+  assert.equal(compact.messages.at(-1).data.type, 'lanm:research-collapse');
+  const modal = element(); modal.open = true; compact.dialogs.push(modal);
+  const countBeforeEscape = compact.messages.length;
+  compact.events.keydown({key: 'Escape'});
+  assert.equal(compact.messages.length, countBeforeEscape, 'Escape in a dialog must not collapse Oracle.');
+  compact.events.message({origin, source: compact.parent, data: {...layout, expanded: false}});
+  assert.equal(compact.evaluate(`document.body.classList.contains('argus-compact')`), true);
 
   const embedded = browser(origin + '/research/?embed=argus');
   embedded.evaluate('initializeEmbedding(); state.initialized = true;');
@@ -111,7 +145,9 @@ async function run() {
   await standalone.evaluate(`selectProject('project_1')`);
   assert.equal(standalone.requests[0].resource, '/api/projects/project_1'); assert.equal(standalone.messages.length, 0);
   assert.equal(standalone.events.message, undefined, 'Standalone UI must not accept parent commands.');
-  console.log('PASS: URL routing, safe downloads, message validation, navigation, turn/modal locks, project races, standalone isolation.');
+  assert.equal(standalone.evaluate('assistantName'), 'LanM Research');
+  assert.equal(standalone.evaluate(`document.body.classList.contains('argus-embedded')`), false);
+  console.log('PASS: URL routing, safe downloads, message validation, compact/expanded preservation, navigation, turn/modal locks, project races, standalone isolation.');
 }
 
 module.exports = run;

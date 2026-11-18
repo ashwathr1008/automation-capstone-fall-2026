@@ -39,3 +39,68 @@
 .shared-record-more{grid-column:1/-1;justify-self:start;margin-top:8px}
 @media(max-width:980px){.argus-embedded .research-layout{grid-template-columns:1fr}.argus-embedded .research-rail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.argus-embedded .main{padding:14px}.argus-embedded .workspace-header{flex-wrap:wrap}.argus-embedded .workspace-header h1{font-size:22px}.embedded-project-bar{gap:8px}.embedded-project-bar>label{width:100%}.embedded-project-bar>select{min-width:0}.embedded-tabs{gap:18px;row-gap:0}.embedded-tabs .tab{font-size:12px}.shared-record-controls,.shared-record-list{grid-template-columns:1fr}.argus-embedded .research-rail{grid-template-columns:1fr}.argus-embedded .welcome h1{font-size:34px}}
+
+/* Oracle inherits ARGUS's palette only inside its embedded workspace. */
+.argus-embedded{--bg:#f3f3f3;--surface:#fff;--sidebar:#f3f3f3;--ink:#000;--text:#000;--muted:#6f6f6f;--line:#dedede;--soft:#f3f3f3;--teal:#b54124;--teal-dark:#8c2f18;--teal-pale:#f7e7e2;--amber:#b54124;--amber-bg:#f7e7e2;--red:#8c2f18;--red-bg:#efcdc3;--shadow:0 8px 24px #00000008;--radius:10px;color:var(--text);color-scheme:light;background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+@media(prefers-color-scheme:dark){.argus-embedded{--bg:#121212;--surface:#1e1e1e;--sidebar:#181818;--ink:#fff;--text:#fff;--muted:#a3a3a3;--line:#333;--soft:#181818;--teal:#d0603f;--teal-dark:#b54124;--teal-pale:#3a211a;--amber:#e07a5c;--amber-bg:#3a211a;--red:#ff9c82;--red-bg:#4d2216;--shadow:none;color-scheme:dark}}
+.argus-embedded :is(h1,h2,h3,h4){font-family:inherit}
+.argus-embedded :is(.card,.conversation-card,.source-card,.run-card,.shared-record-card,.search-field,.embedded-project-bar>select,.field input,.field select,.field textarea,.button,.skip-link){background:var(--surface);border-color:var(--line);color:var(--ink)}
+.argus-embedded :is(.button:hover,.icon-button:hover,.shared-record-card:hover,.run-card:hover,.source-card:hover){background:var(--soft);border-color:var(--teal)}
+.argus-embedded .button.primary{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:none}
+.argus-embedded .button.primary:hover{background:var(--teal-dark)}
+.argus-embedded :is(.button.subtle,.composer-footer select){background:transparent;color:var(--muted)}
+.argus-embedded :is(button,a,summary):focus-visible{outline-color:var(--teal)}
+.argus-embedded :is(input,select,textarea):focus{outline-color:var(--teal)}
+.argus-embedded :is(.badge,.pair-badge,.conversation-empty .agent-symbol,.message-avatar){background:var(--teal-pale);border-color:var(--line);color:var(--teal)}
+.argus-embedded .badge.neutral,.argus-embedded .message.user .message-avatar{background:var(--soft);color:var(--muted);border-color:var(--line)}
+.argus-embedded .badge.amber{background:var(--amber-bg);border-color:var(--line);color:var(--amber)}
+.argus-embedded .badge.red{background:var(--red-bg);border-color:var(--red-bg);color:var(--red)}
+.argus-embedded :is(.context-card,.comparison-bar,.notice){background:var(--soft);border-color:var(--line);color:var(--text)}
+.argus-embedded .notice.error{background:var(--red-bg);border-color:var(--red-bg);color:var(--red)}
+.argus-embedded :is(.conversation-heading,td,.message.user .message-body){border-color:var(--line)}
+.argus-embedded :is(.message.user .message-body,.composer,.detail-section pre,.raw-data,.source-document){background:var(--soft);border-color:var(--line);color:var(--text);box-shadow:none}
+.argus-embedded .composer:focus-within{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal)}
+.argus-embedded .composer textarea::placeholder,.argus-embedded .field input::placeholder,.argus-embedded .field textarea::placeholder,.argus-embedded .composer-hint,.argus-embedded .composer-disclaimer{color:var(--muted)}
+.argus-embedded .working-dot{background:var(--teal);box-shadow:0 0 0 3px var(--teal-pale)}
+.argus-embedded .profile-bar>i{background:var(--muted)}
+.argus-embedded .profile-bar.target>i{background:var(--teal)}
+.argus-embedded .toast{background:var(--ink);color:var(--surface);box-shadow:var(--shadow)}
+.argus-embedded .toast.error{background:var(--red-bg);color:var(--red)}
+.argus-embedded dialog{background:var(--surface);box-shadow:0 20px 80px #00000033}
+.argus-embedded .preview-tabs .active{background:var(--teal);border-color:var(--teal);color:#fff}
+.argus-embedded :is(.message-body pre,.message-body code,.metric-box){background:var(--soft);border-color:var(--line)}
+.argus-embedded .message-body pre code{background:none}
+.argus-embedded .candidate-table tbody tr:hover{background:var(--soft)}
+.argus-embedded .filter-pills .active{background:var(--teal-pale);border-color:var(--line);color:var(--teal)}
+.argus-embedded .method-row{border-color:var(--line)}
+.argus-embedded .welcome-orbit{background:radial-gradient(ellipse,var(--teal-pale) 1%,transparent 70%)}
+.argus-embedded .welcome-orbit::before,.argus-embedded .welcome-orbit>span{border-color:var(--line)}
+.argus-embedded .welcome-orbit>span{background:var(--soft);color:var(--teal)}
+.argus-embedded dialog::backdrop{background:#00000055}
+
+/* Compact Oracle is a chat panel; its parent supplies mode and expansion controls. */
+.argus-embedded.argus-compact{height:100vh;overflow:hidden;background:var(--surface)}
+.argus-compact .app-shell{height:100%;min-height:0}
+.argus-compact .main{height:100%;min-height:0;padding:0;display:flex;flex-direction:column;overflow:hidden}
+.argus-compact :is(.workspace-header,.project-strip,.embedded-project-bar,.embedded-tabs,.research-rail,.conversation-heading){display:none}
+.argus-compact #workspace{flex:1;min-height:0}
+.argus-compact #panel-research{height:100%;display:flex;gap:0}
+.argus-compact .conversation-card{height:100%;min-height:0;max-height:none;flex:1;border:0;border-radius:0;box-shadow:none}
+.argus-compact .messages{min-height:0;max-height:none;padding:14px;overscroll-behavior:contain}
+.argus-compact .conversation-empty{min-height:0;padding:4px 2px}
+.argus-compact .conversation-empty .agent-symbol{width:30px;height:30px;font-size:18px;border-radius:7px;margin-bottom:10px}
+.argus-compact .conversation-empty h2{font-size:19px;letter-spacing:-.4px}
+.argus-compact .conversation-empty p{font-size:11px;line-height:1.6;margin-top:8px}
+.argus-compact .composer{flex-shrink:0;margin:0 10px}
+.argus-compact .composer textarea{min-height:60px;height:68px;max-height:120px;padding:10px 10px 5px;resize:vertical;font-size:12px}
+.argus-compact .composer-footer{padding:5px 8px 8px;gap:8px}
+.argus-compact .composer-footer select{max-width:195px;width:100%;font-size:10px}
+.argus-compact .composer-footer>div{flex:1}
+.argus-compact .composer .button{padding:7px 10px;font-size:11px}
+.argus-compact .composer-hint{display:none}
+.argus-compact .composer-disclaimer{flex-shrink:0;font-size:9px;padding:7px 10px}
+.argus-compact .job-activity{flex-shrink:0;margin:0 12px 7px;padding:5px 0}
+.argus-compact .global-error{flex-shrink:0;margin:8px;font-size:10px;padding:8px}
+.argus-compact .welcome{min-height:0;overflow:auto;padding:20px}
+.argus-compact .welcome h1{font-size:25px}
+.argus-compact .welcome-orbit,.argus-compact .welcome-details{display:none}

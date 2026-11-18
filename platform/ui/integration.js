@@ -5,7 +5,9 @@
   const views = Object.freeze({chat: 'research', build: 'research', candidates: 'library', database: 'evidence', tools: 'model'});
   function context(location, framed) {
     const prefix = /^\/research(?:\/|$)/.test(location.pathname) ? '/research' : '';
-    return {prefix, embedded: Boolean(prefix && framed && new URLSearchParams(location.search).get('embed') === 'argus')};
+    const parameters = new URLSearchParams(location.search);
+    const embedded = Boolean(prefix && framed && parameters.get('embed') === 'argus');
+    return {prefix, embedded, compact: embedded && parameters.get('compact') === '1'};
   }
   function apiPath(path, prefix) {
     return prefix && path.startsWith('/api/') ? prefix + path : path;
@@ -28,7 +30,12 @@
     if (!data.view && !data.projectId) return null;
     return {projectId: data.projectId || null, view: data.view || null};
   }
-  const integration = Object.freeze({views, context, apiPath, localApiUrl, selectionMessage});
+  function layoutMessage(event, parent, origin) {
+    if (event.origin !== origin || event.source !== parent) return null;
+    const data = event.data;
+    return data?.type === 'argus:research-layout' && typeof data.expanded === 'boolean' ? {expanded: data.expanded} : null;
+  }
+  const integration = Object.freeze({views, context, apiPath, localApiUrl, selectionMessage, layoutMessage});
   if (typeof module !== 'undefined' && module.exports) module.exports = integration;
   else root.LanMIntegration = integration;
 })(globalThis);

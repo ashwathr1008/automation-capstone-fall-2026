@@ -3,6 +3,7 @@
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const integration = LanMIntegration.context(window.location, window.parent !== window);
+const assistantName = integration.embedded ? 'Oracle' : 'LanM Research';
 const projectStorageKey = integration.embedded ? 'argus-research-project' : 'lanm-project';
 const state = {projects: [], project: null, candidates: [], methods: [], sources: [], runs: [], testingBatches: [], sharedRecords: [], pool: 'all', mode: 'research', tab: 'research', job: null, chatSubmitting: false, stream: null, runtime: null, candidateRequest: 0, projectRequest: 0, initialized: false, pendingSelection: null};
 const apiPath = path => LanMIntegration.apiPath(path, integration.prefix);
@@ -164,9 +165,20 @@ async function applyResearchSelection(selection) {
 function initializeEmbedding() {
   if (!integration.embedded) return;
   document.body.classList.add('argus-embedded');
+  document.body.classList.toggle('argus-compact', integration.compact);
   $('#embedded-project-bar').hidden = false; $('#embedded-tabs').hidden = false;
-  document.title = 'ARGUS Research workspace';
+  document.title = 'Oracle · ARGUS';
+  $('meta[name="color-scheme"]')?.setAttribute('content', 'light dark');
+  $('#embedded-tabs').setAttribute('aria-label', 'Oracle workspace');
+  $('label[for="chat-input"]').textContent = 'Message Oracle';
+  window.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !document.body.classList.contains('argus-compact') && !$$('dialog').some(dialog => dialog.open)) {
+      window.parent.postMessage({type: 'lanm:research-collapse'}, window.location.origin);
+    }
+  });
   window.addEventListener('message', event => {
+    const layout = LanMIntegration.layoutMessage(event, window.parent, window.location.origin);
+    if (layout) { document.body.classList.toggle('argus-compact', !layout.expanded); return; }
     const selection = LanMIntegration.selectionMessage(event, window.parent, window.location.origin);
     if (!selection) return;
     if (!state.initialized) { state.pendingSelection = selection; return; }
@@ -314,7 +326,7 @@ function renderRichText(parent, text) {
 }
 function messageNode(role, text, streaming = false) {
   const article = node('article', 'message ' + (role === 'user' ? 'user' : 'assistant') + (streaming ? ' streaming' : ''));
-  const meta = node('div', 'message-meta'); meta.append(node('span', 'message-avatar', role === 'user' ? 'You' : 'L'), node('span', '', role === 'user' ? 'You' : role === 'assistant' ? 'LanM Research' : 'Workspace'));
+  const meta = node('div', 'message-meta'); meta.append(node('span', 'message-avatar', role === 'user' ? 'You' : integration.embedded ? 'O' : 'L'), node('span', '', role === 'user' ? 'You' : role === 'assistant' ? assistantName : 'Workspace'));
   const body = node('div', 'message-body'); renderRichText(body, text); article.append(meta, body); return article;
 }
 function renderMessages(messages) {
