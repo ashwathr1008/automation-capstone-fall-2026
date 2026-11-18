@@ -1,0 +1,4 @@
+# Keep exported figure/table checksums stable on every platform.
+# Matplotlib SVG path formatting intentionally contains trailing spaces.
+*.svg text eol=lf -whitespace
+*.csv text eol=lf

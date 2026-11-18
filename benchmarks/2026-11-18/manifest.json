@@ -1,0 +1,238 @@
+{
+  "status": "complete",
+  "scope": "Aggregate public export; raw audit evidence stays local",
+  "local_audit_source_files": [
+    {
+      "filename": "original-strict-summary.json",
+      "sha256": "98b13bddad74a3515a8e94cb8052baac89ea9089f56a0fa74f2cf500f5f871b0",
+      "bytes": 1169992
+    },
+    {
+      "filename": "corrected-summary.json",
+      "sha256": "5a131ce7162626cf7710f8f4f3bbd474eb876818bee72f96b95194c1bc06dd36",
+      "bytes": 1731758
+    },
+    {
+      "filename": "methodology-and-coverage.json",
+      "sha256": "f9de8c6b9706bee52ba746e7757967f3650204f03e0ce89c20b8591e590f3f79",
+      "bytes": 26287
+    },
+    {
+      "filename": "runtime-profile-evidence.json",
+      "sha256": "60eb7f8ffa06861af0fcd28516339cb2d1b380894973519c2669152d7b8106f9",
+      "bytes": 31731
+    }
+  ],
+  "files": [
+    {
+      "filename": "corrected-aggregate.json",
+      "bytes": 674336,
+      "sha256": "86cc334d649cc643e568202bc6e28668792b10edf6544bbedb1c966a98842755"
+    },
+    {
+      "filename": "corrected-figures/01-task-completion.data.json",
+      "bytes": 65029,
+      "sha256": "25ab25d9c349e58271aed65ed31d5d12b5e871181dfbad77a2b39bfe772db919"
+    },
+    {
+      "filename": "corrected-figures/01-task-completion.png",
+      "bytes": 374021,
+      "sha256": "e23297a3ef5fa922009c86d67cb2182bbb56fda2b77d2ab7a2ded70eb27c3a69"
+    },
+    {
+      "filename": "corrected-figures/01-task-completion.svg",
+      "bytes": 28006,
+      "sha256": "20fb050e18472c8f18982b3f61d0e95c9c163a9f6c6a80c716e02e3b49331494"
+    },
+    {
+      "filename": "corrected-figures/02-task-model-matrix.data.json",
+      "bytes": 102548,
+      "sha256": "e63a63911f1df8382621d2491f980b632abecbcd05f861b7c58b94acea477216"
+    },
+    {
+      "filename": "corrected-figures/02-task-model-matrix.png",
+      "bytes": 391455,
+      "sha256": "a210feae128ee0b279a5fd2c1353081efd6a76aa2d8b316274fce8a36c916a1b"
+    },
+    {
+      "filename": "corrected-figures/02-task-model-matrix.svg",
+      "bytes": 68253,
+      "sha256": "e90f49053886bc8974817c4797340b649285432a819da4af3aa4b1302ddb67a6"
+    },
+    {
+      "filename": "corrected-figures/03-completed-case-latency.data.json",
+      "bytes": 64869,
+      "sha256": "b36d9f7314de4e47eb5b13be1a30ae9cfad33f2577bfdf389a8fdbeb0b07f744"
+    },
+    {
+      "filename": "corrected-figures/03-completed-case-latency.png",
+      "bytes": 347882,
+      "sha256": "30d42b59cd907770cf0ea45fa0ee28a2eb94d037c175f8eaaae4d5447694b966"
+    },
+    {
+      "filename": "corrected-figures/03-completed-case-latency.svg",
+      "bytes": 18910,
+      "sha256": "b94df5cf44909f40a91ab3a1e7ce067e61495a5284018f1c73f1a70b38688afd"
+    },
+    {
+      "filename": "corrected-figures/04-recurring-tool-failures.data.json",
+      "bytes": 76564,
+      "sha256": "efd5858c3b0f63e614902d806e2d9b6e3bbaf1c82aef08cae16217ca119cd19f"
+    },
+    {
+      "filename": "corrected-figures/04-recurring-tool-failures.png",
+      "bytes": 399288,
+      "sha256": "f3ed807928ffcd39fc5cc81170dd5c353c5f81e8af02b9af0141df9559654e80"
+    },
+    {
+      "filename": "corrected-figures/04-recurring-tool-failures.svg",
+      "bytes": 18263,
+      "sha256": "4e04085f9aa4cbed7ecd3e31f3ae32e27fd6a262230a54ff88a9cf0b366e8abd"
+    },
+    {
+      "filename": "corrected-figures/figure-manifest.json",
+      "bytes": 65809,
+      "sha256": "488bd389024f4e830cd857edb72b68ef00e3c47f34194eb919605979fb4b6165"
+    },
+    {
+      "filename": "corrected-models.csv",
+      "bytes": 2193,
+      "sha256": "7dab4da4f9ce7df2187270e58712cdddf2130d4c4325f1fd0319388f8874e92f"
+    },
+    {
+      "filename": "corrected-paired-tasks.csv",
+      "bytes": 18294,
+      "sha256": "8008a7550ba4cf7ab36a4f28ca3f4774a636e685c95e985503f61e7904f449fa"
+    },
+    {
+      "filename": "corrected-paired.json",
+      "bytes": 91049,
+      "sha256": "406f6bb3289508225a201da1259c315d45b9d5e40e35f99a6e23688d2f203bfd"
+    },
+    {
+      "filename": "corrected-tasks.csv",
+      "bytes": 9016,
+      "sha256": "e7701092fe10dc173349591fa20c402240c2041eabb7d5bdd19c13679f727132"
+    },
+    {
+      "filename": "corrected-tools.csv",
+      "bytes": 12871,
+      "sha256": "ca31f280421d13388b68f5f6f3a119367440afb1a4169b8852c442b58e72c7ec"
+    },
+    {
+      "filename": "methodology-and-coverage.json",
+      "bytes": 26287,
+      "sha256": "f9de8c6b9706bee52ba746e7757967f3650204f03e0ce89c20b8591e590f3f79"
+    },
+    {
+      "filename": "original-strict-aggregate.json",
+      "bytes": 625914,
+      "sha256": "ec7b36b87ad6c3c6644ba2cfb9300ca6c834211b23e2b4e64eac1e81e80b4307"
+    },
+    {
+      "filename": "original-strict-figures/01-task-completion.data.json",
+      "bytes": 13383,
+      "sha256": "9de824c30a71df0024ab736e1c605a443a7f16a92335b665461cfc4ffe49ec45"
+    },
+    {
+      "filename": "original-strict-figures/01-task-completion.png",
+      "bytes": 373782,
+      "sha256": "11f985362a96172a6ec50aac62c16971be796803143e36a6e1f9032d671180fb"
+    },
+    {
+      "filename": "original-strict-figures/01-task-completion.svg",
+      "bytes": 28229,
+      "sha256": "acb75cc334014e376843a1458238beaef979a6fdb946c0024dce7744a9873007"
+    },
+    {
+      "filename": "original-strict-figures/02-task-model-matrix.data.json",
+      "bytes": 50853,
+      "sha256": "0d2fbc86e468bcf9217e1c63e0ba898731192970ec5f92889434412dd84ed63d"
+    },
+    {
+      "filename": "original-strict-figures/02-task-model-matrix.png",
+      "bytes": 394739,
+      "sha256": "7fa5020218976e7bd2da20f2d1a3454a3037e41a39743938c53e7b35ccb767eb"
+    },
+    {
+      "filename": "original-strict-figures/02-task-model-matrix.svg",
+      "bytes": 68262,
+      "sha256": "789d81be11e2652adfed538341590c3dbe62df65ebd012f8566bb33af88f4aa6"
+    },
+    {
+      "filename": "original-strict-figures/03-completed-case-latency.data.json",
+      "bytes": 13183,
+      "sha256": "7fa4023b231d3cde4ba3db8072113716ff7a399efdfa4d707e014f1865366b8e"
+    },
+    {
+      "filename": "original-strict-figures/03-completed-case-latency.png",
+      "bytes": 348948,
+      "sha256": "b7ebd579930b3abef22ec7960992da06186f4cd63b31a64d75b0ebe70a31554a"
+    },
+    {
+      "filename": "original-strict-figures/03-completed-case-latency.svg",
+      "bytes": 18910,
+      "sha256": "c5d09d46a6bbf8c5b0537d88b1510a3a5bde1ea42993fe5d55adb20a0e445f2a"
+    },
+    {
+      "filename": "original-strict-figures/04-recurring-tool-failures.data.json",
+      "bytes": 26758,
+      "sha256": "d9ed3eedd3bba5c0b62537f5d9b806ce932dcab3c5e2698de6e27671fb65952f"
+    },
+    {
+      "filename": "original-strict-figures/04-recurring-tool-failures.png",
+      "bytes": 399705,
+      "sha256": "91e93d75fbcfa5b6aa825e21da0e31ae655a9411b2538a52c89b0f5e50e0cfc3"
+    },
+    {
+      "filename": "original-strict-figures/04-recurring-tool-failures.svg",
+      "bytes": 18263,
+      "sha256": "c731889c0fc44da36115acda7bab523ede12cbc0e17db37d856954bd6da04baf"
+    },
+    {
+      "filename": "original-strict-figures/figure-manifest.json",
+      "bytes": 14153,
+      "sha256": "47c65b3658729189ee4d4d1f44b23893544f24ca6c5f9cb990f7a5cece1b8242"
+    },
+    {
+      "filename": "original-strict-models.csv",
+      "bytes": 2182,
+      "sha256": "c88530fa921b2da4b9e00fe799bb6b0123c421d0b317e09a32357346dcfff6c0"
+    },
+    {
+      "filename": "original-strict-paired-tasks.csv",
+      "bytes": 18383,
+      "sha256": "9af94746bd0924c95ec4b43592884215187ebcc1e7bc50e023bac2491d673dfd"
+    },
+    {
+      "filename": "original-strict-paired.json",
+      "bytes": 91276,
+      "sha256": "dd08dedd814541772c3e2d7802b7aef3714184e317975c91d5ecd00093243bfe"
+    },
+    {
+      "filename": "original-strict-tasks.csv",
+      "bytes": 8897,
+      "sha256": "8635051b1ee9d9be15e91961ba58c1c22b9e5c6d4e4bc8466e686fb151b5d7b6"
+    },
+    {
+      "filename": "original-strict-tools.csv",
+      "bytes": 12933,
+      "sha256": "e60ab0f5b78556279eb786294c80303990cbb4dc739aec216bc829f80ad075d7"
+    },
+    {
+      "filename": "qualitative-findings.json",
+      "bytes": 12436,
+      "sha256": "5a60034a348d701c0456703064d5737aa0fc1acdb56b724973fed3edb13e2592"
+    },
+    {
+      "filename": "README.md",
+      "bytes": 5477,
+      "sha256": "59c7e27a20050b3541e31b68041e764436ab66279f7ea34caac6f47ed746fd78"
+    },
+    {
+      "filename": "runtime-identity-evidence.json",
+      "bytes": 27627,
+      "sha256": "75c9007aac6cdcd33cdb2adee0bd8e8f7dfb6086d2ca5ed382297a88b1b266ce"
+    }
+  ]
+}

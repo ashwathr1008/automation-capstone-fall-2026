@@ -1,0 +1,13 @@
+profile_id,display_name,attempted,completed,objective_tasks_passed,objective_task_success_rate,tool_calls,tool_calls_failed,tasks_passed_despite_tool_failures,tasks_failed_without_tool_failures,completed_case_seconds
+claude-opus,Opus 5.5,48,48,48,1.0,109,0,0,0,"{""n"": 48, ""median"": 16.085500000000003, ""p95"": 31.06785, ""min"": 8.172, ""max"": 33.296}"
+claude-sonnet,Sonnet 5.5,48,48,48,1.0,103,0,0,0,"{""n"": 48, ""median"": 9.9685, ""p95"": 18.8887, ""min"": 4.563, ""max"": 19.578}"
+codex-astra,GPT-6 Astra,48,48,48,1.0,125,0,0,0,"{""n"": 48, ""median"": 16.703000000000003, ""p95"": 28.7111, ""min"": 5.031, ""max"": 34.281}"
+codex-default,GPT-6.1 Sol,48,48,48,1.0,133,0,0,0,"{""n"": 48, ""median"": 16.297, ""p95"": 29.8664, ""min"": 5.0, ""max"": 30.953}"
+qwen-4b-thinking,Qwen 4B · base · thinking on,48,46,44,0.9166666666666666,126,19,1,0,"{""n"": 46, ""median"": 14.328, ""p95"": 20.0545, ""min"": 5.75, ""max"": 23.657}"
+qwen-4b-trained,Qwen 4B · trained · thinking off,48,47,32,0.6666666666666666,106,6,4,14,"{""n"": 47, ""median"": 5.516, ""p95"": 11.904799999999986, ""min"": 2.985, ""max"": 12.984}"
+qwen-4b-trained-thinking,Qwen 4B · trained · thinking on,48,47,41,0.8541666666666666,120,18,3,3,"{""n"": 47, ""median"": 10.625, ""p95"": 20.604499999999998, ""min"": 4.703, ""max"": 28.578}"
+qwen-9b-local,Qwen 9B · base · thinking off,48,48,45,0.9375,119,8,4,0,"{""n"": 48, ""median"": 12.1485, ""p95"": 21.90905, ""min"": 5.641, ""max"": 30.797}"
+qwen-9b-thinking,Qwen 9B · base · thinking on,48,48,46,0.9583333333333334,116,4,4,2,"{""n"": 48, ""median"": 20.109, ""p95"": 38.8148, ""min"": 7.516, ""max"": 40.062}"
+qwen-9b-trained,Qwen 9B · trained · thinking off,48,48,37,0.7708333333333334,97,10,7,8,"{""n"": 48, ""median"": 8.6255, ""p95"": 14.07915, ""min"": 2.343, ""max"": 17.172}"
+qwen-9b-trained-thinking,Qwen 9B · trained · thinking on,48,47,45,0.9375,127,19,6,0,"{""n"": 47, ""median"": 12.438, ""p95"": 24.214599999999997, ""min"": 6.453, ""max"": 31.641}"
+qwen-local,Qwen 4B · base · thinking off,48,48,38,0.7916666666666666,150,28,9,3,"{""n"": 48, ""median"": 8.093499999999999, ""p95"": 18.4041, ""min"": 3.36, ""max"": 28.093}"

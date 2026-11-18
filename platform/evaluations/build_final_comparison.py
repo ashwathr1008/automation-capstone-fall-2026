@@ -109,7 +109,7 @@ def failure_patterns(summary):
             "attribution": "Observed tool responses and unmet state checks. Repeated invalid arguments suggest a calling problem; these automated labels do not prove a root cause or a broken tool implementation."}
 
 
-def build_bundle(original_reports, clarified_reports, configurations, plan, output_dir):
+def build_bundle(original_reports, clarified_reports, configurations, plan, output_dir, runtime_evidence=None):
     output = Path(output_dir).resolve()
     archive = output.with_suffix(".zip")
     derived_path = output.with_name(output.name + "-corrected-attempts.json")
@@ -122,7 +122,13 @@ def build_bundle(original_reports, clarified_reports, configurations, plan, outp
     declarations = validate_population(configurations, plan, profiles)
     controls = verify_pair_controls(profiles)
     cache = {}
-    training = {key: verify_training(declarations[key], profiles[key], cache) for key in sorted(TRAINED_IDS)}
+    verification_profiles = profiles
+    identity_evidence = None
+    if runtime_evidence is not None:
+        from verify_runtime_profile_evidence import verify_profile_evidence
+        verification_profiles, identity_evidence = verify_profile_evidence(
+            profiles, original_reports + clarified_reports, declarations, workspace=WORKSPACE, **runtime_evidence)
+    training = {key: verify_training(declarations[key], verification_profiles[key], cache) for key in sorted(TRAINED_IDS)}
     for size in ("4b", "9b"):
         off, on = training[f"qwen-{size}-trained"], training[f"qwen-{size}-trained-thinking"]
         for field in ("raw_adapter", "evaluated_adapter", "run_manifest", "export_manifest"):
@@ -170,7 +176,20 @@ def build_bundle(original_reports, clarified_reports, configurations, plan, outp
     _write(output / "configurations.json", configurations)
     _write(output / "clarified-analysis-plan.json", plan)
     _write(output / "methodology-and-coverage.json", methodology)
+    if identity_evidence:
+        methodology["runtime_identity_metadata"] = identity_evidence["disclosure"]
+        _write(output / "methodology-and-coverage.json", methodology)
+        _write(output / "runtime-profile-evidence.json", identity_evidence)
+        for kind, record in identity_evidence["files"].items():
+            if kind != "runtime_profiles":
+                target = output / "runtime-evidence" / Path(record["path"]).name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(record["path"], target)
+        for binding in identity_evidence["trained_report_bindings"]:
+            record = binding["recorded_identity"]
+            shutil.copyfile(record["path"], output / "runtime-evidence" / Path(record["path"]).name)
     _write(output / "source-and-model-identities.json", {"raw_reports": replacement["source_reports"], "profiles": profiles,
+        "runtime_profile_evidence": identity_evidence,
         "training_verification": training, "paired_runtime_controls": controls,
         "training_corpus": dataset, "validation_corpus": validation, "base_lineage": lineage,
         "base_lineage_file": file_identity(lineage_path, cache), "derived_attempts": file_identity(derived_path, cache)})
@@ -249,7 +268,7 @@ def copy_provenance(output, training):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(evidence["path"], target)
     scripts = ("build_final_comparison.py", "combine_clarified_comparison.py", "summarize_comparison.py", "plot_comparison.py",
-               "comparison_pairs.py", "verify_comparison_training.py", "audit_authored_methods.py", "prepare_answer_review.py")
+               "comparison_pairs.py", "verify_comparison_training.py", "verify_runtime_profile_evidence.py", "audit_authored_methods.py", "prepare_answer_review.py")
     (output / "analysis-scripts").mkdir()
     for name in scripts:
         shutil.copyfile(Path(__file__).with_name(name), output / "analysis-scripts" / name)
@@ -262,12 +281,27 @@ def main(argv=None):
     parser.add_argument("--configurations", type=Path, required=True)
     parser.add_argument("--correction-plan", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--runtime-profiles", type=Path)
+    parser.add_argument("--executed-plan", type=Path)
+    parser.add_argument("--queue-state", type=Path)
+    parser.add_argument("--archived-source-manifest", type=Path)
+    parser.add_argument("--archived-source-manifest-sha256")
     args = parser.parse_args(argv)
     raw_plan = args.correction_plan.read_bytes()
     plan = {"path": str(args.correction_plan.resolve()), "sha256": hashlib.sha256(raw_plan).hexdigest(), "contents": json.loads(raw_plan)}
     try:
+        supplied = (args.runtime_profiles, args.executed_plan, args.queue_state)
+        if any(supplied) and not all(supplied):
+            raise ValueError("Runtime profile evidence requires --runtime-profiles, --executed-plan and --queue-state together")
+        evidence = dict(profiles_path=args.runtime_profiles, plan_path=args.executed_plan, state_path=args.queue_state) if all(supplied) else None
+        archive_supplied = (args.archived_source_manifest, args.archived_source_manifest_sha256)
+        if any(archive_supplied):
+            if not evidence or not all(archive_supplied):
+                raise ValueError("Archive resolution requires runtime evidence, a manifest path and its expected checksum")
+            evidence.update(archived_manifest=args.archived_source_manifest,
+                            archived_manifest_sha256=args.archived_source_manifest_sha256)
         result = build_bundle(read_reports(args.original), read_reports(args.clarified),
-                              json.loads(args.configurations.read_bytes()), plan, args.output_dir)
+                              json.loads(args.configurations.read_bytes()), plan, args.output_dir, runtime_evidence=evidence)
     except (ValueError, OSError) as error:
         parser.error(str(error))
     print(json.dumps(result, indent=2))

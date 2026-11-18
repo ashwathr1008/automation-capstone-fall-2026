@@ -280,7 +280,9 @@ def failure_figure(data):
     subtitle = (f"Top {displayed} of {total} model–tool pairs with failures · denominator = all observed calls to that tool"
                 if total else f"{data['all_tool_calls']} observed platform-tool calls · no explicit tool failures recorded")
     footer = ("A tool failure is an explicit rejected/error outcome; some tasks recover. Affected attempts count model/task/repetition combinations.\n"
-              f"Distinct tasks count workflow types. Unknown tool outcomes: {data['tool_calls_unknown']}. All error messages and counts are retained in the summary.")
+              f"Distinct tasks count workflow types. Unknown tool outcomes: {data['tool_calls_unknown']}. "
+              + ("Call counts and failure categories are retained in the aggregate results." if not data.get("error_details_available", True)
+                 else "All error messages and counts are retained in the summary."))
     fig = _figure("Which tool calls failed repeatedly?", subtitle, footer)
     ax = fig.add_axes([0.405, 0.17, 0.27, 0.62])
     rows = data["tool_failure_rows"]
@@ -321,11 +323,12 @@ def save_figure(fig, output_dir, stem, data, provenance, dpi):
     return {"png": str(png), "svg": str(svg), "data": str(raw)}
 
 
-def export_figures(summary, output_dir, *, summary_path=None, expected_repeats=3, dpi=240, allow_partial=False):
+def export_figures(summary, output_dir, *, summary_path=None, expected_repeats=3, dpi=240, allow_partial=False, error_details_available=True):
     running = [source.get("path") for source in summary.get("source_reports", []) if source.get("status") != "run_finished"]
     if running and not allow_partial:
         raise ValueError("Input includes unfinished reports; use --allow-partial only for an explicitly provisional export")
     data = plotted_data(summary, expected_repeats)
+    data["error_details_available"] = error_details_available
     incomplete = [row["profile_id"] for row in data["outcomes"]
                   if row["attempted"] < len(data["case_ids"]) * expected_repeats]
     if incomplete and not allow_partial:

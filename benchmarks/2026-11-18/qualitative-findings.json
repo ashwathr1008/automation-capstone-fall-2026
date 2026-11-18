@@ -1,0 +1,176 @@
+{
+  "scope": "Selected human-readable trace audits; observations are paraphrases, not raw conversation excerpts or a blinded scientific-accuracy assessment.",
+  "reviewed_configurations": 4,
+  "sources": [
+    {
+      "filename": "qwen4-trained-diagnostics-v1.json",
+      "sha256": "96809e068dc74e6b8a6c01a6f16c1d13ec34fe8e3293fdf06397610cbedb1da8",
+      "profile_id": "qwen-4b-trained"
+    },
+    {
+      "filename": "qwen4-trained-thinking-diagnostics-v1.json",
+      "sha256": "6fc17f93602cec13b4d3cde38e97d3af17a109f26d40d4b3a013b9c379323832",
+      "profile_id": "qwen-4b-trained-thinking"
+    },
+    {
+      "filename": "qwen9-trained-diagnostics-v1.json",
+      "sha256": "d079b74082c52f2821d998ddf684bb4a5d431132c5759ff56d44218accef227b",
+      "profile_id": "qwen-9b-trained"
+    },
+    {
+      "filename": "qwen9-trained-thinking-diagnostics-v1.json",
+      "sha256": "fa61039d7f3cf352f8422725e14bee0320eb5e07948b4e7d4a50533655032fbe",
+      "profile_id": "qwen-9b-trained-thinking"
+    }
+  ],
+  "findings": [
+    {
+      "profile_id": "qwen-4b-trained",
+      "id": "requested_seed_omitted",
+      "frequency": "3/3 trained exact-selection attempts; base passed2/3",
+      "observation": "Every trained call omitted required seed=7. Tools accepted default generated seeds; the exact selection/order was saved correctly but the requested batch contract failed. Repetition3 nevertheless claimed seed7.",
+      "diagnostic_filename": "qwen4-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained",
+      "id": "candidate_scope_omitted",
+      "frequency": "3/3 trained and3/3 base attempts failed",
+      "observation": "update_assumptions omitted candidate_id, so the shared lifetime changed to80 rather than leaving it100 and assigning only o-36. The trained answers still described a candidate-specific override.",
+      "diagnostic_filename": "qwen4-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained",
+      "id": "candidate_calculation_target_omitted",
+      "frequency": "3/3 trained attempts failed; base passed3/3",
+      "observation": "The trained model calculated project-level economics without candidate_id=o-36. The grader label mismatched_measurements_not_used fails because the required candidate-specific result is absent; it does not demonstrate that mismatched experimental values were incorporated. Answers in repetitions1 and2 also invented experiment pH8.0 and3.5; actual pH was6.",
+      "diagnostic_filename": "qwen4-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained",
+      "id": "hypothetical_parameters_described_not_applied",
+      "frequency": "3/3 trained and3/3 base attempts failed",
+      "observation": "All trained ranks saved10 rows rather than3 and omitted the support configuration override. Repetitions2 and3 placed requested conditions only in free-text reasons and applied no numerical/configuration overrides; these saved runs were not hypothetical.",
+      "diagnostic_filename": "qwen4-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained",
+      "id": "wrong_source_fields_after_successful_read",
+      "frequency": "1/3 trained attempts failed; base passed3/3",
+      "observation": "After reading the supplied source, the model saved100 USD/L and project assumption instead of72 USD/L and supplier estimate. Both tool calls succeeded.",
+      "diagnostic_filename": "qwen4-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained",
+      "id": "second_calculation_missing_after_revision",
+      "frequency": "1/3 trained attempts failed; base passed3/3",
+      "observation": "The second turn saved lifetime120 but never calculated a second result. The answer reused the first run ID and claimed a new calculation and halved required bed volume. Only the60-cycle calculation exists.",
+      "diagnostic_filename": "qwen4-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained",
+      "id": "ranking_used_instead_of_saved_selection",
+      "frequency": "1/3 trained attempts failed; base passed3/3",
+      "observation": "After the missing bound was supplied, create_testing_batch used ranking_run_id instead of selection_id, changing the ordered shortlist from[o-126,o-460] to[o-460,o-133]. The tool call succeeded.",
+      "diagnostic_filename": "qwen4-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained",
+      "id": "repeated_calculation_and_context_exhaustion",
+      "frequency": "1 trained attempt ended with runtime error",
+      "observation": "The model calculated o-37 eight times. The last successful request already used32398 prompt tokens; the next request returned HTTP400. The server log recorded35357 requested tokens against32768 available. This is a workflow loop/context-budget failure, not a failed numerical tool execution.",
+      "diagnostic_filename": "qwen4-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained-thinking",
+      "id": "candidate_scope_omitted",
+      "frequency": "2 of 3 trained attempts; base passed 3 of 3",
+      "observation": "update_assumptions omitted candidate_id, changing the shared lifetime from 100 to 80. Both subsequent candidate calculations used that shared value. The first answer explicitly denied the shared change; the second partially recognized it but still claimed the requested override had been saved.",
+      "diagnostic_filename": "qwen4-trained-thinking-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained-thinking",
+      "id": "hypothetical_overrides_not_combined",
+      "frequency": "2 of 3 trained attempts; base also failed 2 of 3",
+      "observation": "One attempt put the scenario only in descriptive text. Another recovered from an invalid support assumption by saving support-only and lifetime-only rankings separately, never one snapshot containing both requested overrides.",
+      "diagnostic_filename": "qwen4-trained-thinking-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained-thinking",
+      "id": "altered_project_id_repeated_until_round_limit",
+      "frequency": "1 of 3 clarification/export attempts",
+      "observation": "After a successful read using the correct project ID, the model shortened that ID in the batch call. It repeated the rejected batch call four times and then rejected project_state calls eight times, reaching the tool-round limit.",
+      "diagnostic_filename": "qwen4-trained-thinking-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained-thinking",
+      "id": "earlier_turn_bound_not_carried_forward",
+      "frequency": "1 of 3 clarification/export attempts",
+      "observation": "The first turn supplied minimum 50 uL; the second supplied maximum 80 uL and seed 11. The model submitted only the maximum and then asked again for the already supplied minimum after tool rejection. No batch was created.",
+      "diagnostic_filename": "qwen4-trained-thinking-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-4b-trained-thinking",
+      "id": "ambiguous_original_zero_cost_rule",
+      "frequency": "1 original method attempt; all 3 clarified attempts passed",
+      "observation": "Original source explicitly rejected usd_per_kg <= 0, so the zero-cost probe failed. This follows an ambiguous reading of the original task and must be separated from clean instruction-following failures. Every configuration received all three revised attempts.",
+      "diagnostic_filename": "qwen4-trained-thinking-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-9b-trained",
+      "id": "second_turn_claimed_saves_without_tool_calls",
+      "frequency": "3 of 3 trained revision workflows; base passed 3 of 3",
+      "observation": "The first turn saved 60 cycles and calculated once. The second turn offered both required tools, but the model made no calls while claiming a saved 120-cycle revision and a new run ID. State remained at 60 cycles with one calculation; each second-turn answer included a run ID absent from persisted state.",
+      "diagnostic_filename": "qwen9-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-9b-trained",
+      "id": "candidate_scope_omitted",
+      "frequency": "3 of 3 trained attempts; base passed 3 of 3",
+      "observation": "update_assumptions omitted candidate_id and changed the shared lifetime from 100 to 80. Both candidate calculations therefore used the same shared value, violating the requested candidate-only scope. Answers variously described unsupported limitations of the economics tool or admitted the shared update without repairing it.",
+      "diagnostic_filename": "qwen9-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-9b-trained",
+      "id": "support_override_dropped_after_schema_error",
+      "frequency": "3 of 3 trained attempts; base failed 2 of 3",
+      "observation": "All three attempts placed support in assumption_overrides and received an explicit rejection. Retrying dropped support instead of moving it to configuration_overrides; one attempt also dropped lifetime and retained only descriptive scenario text.",
+      "diagnostic_filename": "qwen9-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-9b-trained",
+      "id": "ranking_used_instead_of_saved_selection",
+      "frequency": "1 of 3 trained exact-selection attempts; base passed 3 of 3",
+      "observation": "After saving the requested ordered selection, create_testing_batch used ranking_run_id instead of selection_id. Both calls succeeded, but the batch did not preserve the selected pair/order. The answer falsely said the batch came from the saved selection.",
+      "diagnostic_filename": "qwen9-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-9b-trained",
+      "id": "required_candidate_calculation_target_omitted",
+      "frequency": "1 of 3 trained attempts; base passed 3 of 3",
+      "observation": "calculate_economics omitted candidate_id=o-36 and saved a project-level calculation. The failed check is named mismatched_measurements_not_used, but this trace establishes the absence of the required candidate-specific calculation, not that mismatched experiment data were used.",
+      "diagnostic_filename": "qwen9-trained-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-9b-trained-thinking",
+      "id": "wrong_saved_shortlist_size",
+      "frequency": "1 of 3 trained hypothetical attempts; base passed 3 of 3",
+      "observation": "The model corrected a rejected support override and saved both requested scenario overrides, but requested and saved 30 candidates instead of 3. Its final answer named the top three, which did not fix the larger saved snapshot.",
+      "diagnostic_filename": "qwen9-trained-thinking-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-9b-trained-thinking",
+      "id": "ineligible_selection_repeated_until_round_limit",
+      "frequency": "1 of 3 trained mismatched-condition attempts; base passed 3 of 3",
+      "observation": "After ranking excluded the candidate because the accepted evidence had mismatched conditions, the model repeatedly tried to save that ineligible candidate as a selection. Ten rejected attempts exhausted the tool-round limit, and the requested economics calculation was never performed. This does not demonstrate use of mismatched measurements; the failure was an uncompleted calculation after an unrecovered selection loop.",
+      "diagnostic_filename": "qwen9-trained-thinking-diagnostics-v1.json"
+    },
+    {
+      "profile_id": "qwen-9b-trained-thinking",
+      "id": "mistyped_reviewed_record_id_then_accepted_duplicate",
+      "frequency": "1 of 3 trained review-and-accept attempts; base passed 3 of 3",
+      "observation": "The model correctly created an unaccepted draft on the first turn. After explicit review, it mistyped that record ID in the acceptance call. Instead of recovering the original ID, it created an identical second record and accepted the duplicate. The reviewed original remained a draft, violating the requirement to accept that exact saved record.",
+      "diagnostic_filename": "qwen9-trained-thinking-diagnostics-v1.json"
+    }
+  ],
+  "interpretation": "Observed calls, available tools and saved state establish these failures. One adapter, seed and training recipe do not identify why behavior changed; no causal mechanism is established."
+}

@@ -1,0 +1,588 @@
+{
+  "verified": true,
+  "disclosure": "The frozen report serializer omitted training-specific metadata. Full-profile metadata is verified separately against the executed plan's profile checksum, exact report-visible profile projection, per-report artifact identities and completed queue report hashes. Raw reports remain unchanged.",
+  "files": {
+    "archived_source_manifest": {
+      "filename": "manifest.json",
+      "sha256": "0c2c27ce8e4346940543192cc81cb5929b8f4395e5d84dfa35352925e6e7a235"
+    },
+    "completed_queue_state": {
+      "filename": "post-training-queue-state.json",
+      "sha256": "5442e2cbce1f235442bfd34beced86aa3a3cb353c52c5a0c7c71117730a9e81e"
+    },
+    "executed_plan": {
+      "filename": "post-training-executed-plan.json",
+      "sha256": "6abb68b1c6005d0ccd707c4ceaa8695d1d200d5d45f7d0c62da4111f1e9427f3"
+    },
+    "runtime_profiles": {
+      "filename": "profiles.json",
+      "sha256": "94bf41793c5d82d5781781d5aacdd765c482d8186b4ceadd7fe47451416b06a7"
+    }
+  },
+  "source_resolutions": [
+    {
+      "expected_sha256": "006f065b4457ab182e4ca289526035cb1f3bb04316bd31cd97dfe5582797927d",
+      "location": "current_workspace",
+      "original_source": "local-training\\post_training_queue.py",
+      "resolved_source": {
+        "filename": "post_training_queue.py",
+        "sha256": "006f065b4457ab182e4ca289526035cb1f3bb04316bd31cd97dfe5582797927d"
+      }
+    },
+    {
+      "expected_sha256": "73ae47c1ca1a9681c410a9f874ab9d46aa1c1a4bb8781b5cc35196f0fb47d065",
+      "location": "current_workspace",
+      "original_source": "local-training\\check_platform_integration.py",
+      "resolved_source": {
+        "filename": "check_platform_integration.py",
+        "sha256": "73ae47c1ca1a9681c410a9f874ab9d46aa1c1a4bb8781b5cc35196f0fb47d065"
+      }
+    },
+    {
+      "expected_sha256": "aa430668b7097cb3a1beebdcdb29819eed2824a4c8588fc9c275ef4f1ca74f92",
+      "location": "current_workspace",
+      "original_source": "platform\\evaluations\\compare.py",
+      "resolved_source": {
+        "filename": "compare.py",
+        "sha256": "aa430668b7097cb3a1beebdcdb29819eed2824a4c8588fc9c275ef4f1ca74f92"
+      }
+    },
+    {
+      "expected_sha256": "baea6ee2a9ac2c7696f1c44669383368926ddcc8cd5fb10d2d4140d6e60583f1",
+      "location": "current_workspace",
+      "original_source": "platform\\evaluations\\clarified_method.py",
+      "resolved_source": {
+        "filename": "clarified_method.py",
+        "sha256": "baea6ee2a9ac2c7696f1c44669383368926ddcc8cd5fb10d2d4140d6e60583f1"
+      }
+    },
+    {
+      "expected_sha256": "aefa335cb5289e0500f503113eb14bf6cc34a0a1111ced3dcb8f3ab904292d79",
+      "location": "current_workspace",
+      "original_source": "platform\\evaluations\\workflow_cases.py",
+      "resolved_source": {
+        "filename": "workflow_cases.py",
+        "sha256": "aefa335cb5289e0500f503113eb14bf6cc34a0a1111ced3dcb8f3ab904292d79"
+      }
+    },
+    {
+      "expected_sha256": "6c89a0df7e7d78af91dcc2b262a782fd3ef94a67cff4526158506a6fb32b1ae9",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/runtime.py",
+      "resolved_source": {
+        "filename": "runtime.py",
+        "sha256": "6c89a0df7e7d78af91dcc2b262a782fd3ef94a67cff4526158506a6fb32b1ae9"
+      }
+    },
+    {
+      "expected_sha256": "7dcfd51ddc1666a7d6f71a6a578eb4d13a5d19cbf9bfd69d0d57210e0713249e",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/compatible_runtime.py",
+      "resolved_source": {
+        "filename": "compatible_runtime.py",
+        "sha256": "7dcfd51ddc1666a7d6f71a6a578eb4d13a5d19cbf9bfd69d0d57210e0713249e"
+      }
+    },
+    {
+      "expected_sha256": "7ce00c149b06498b9d9c18f1aabe7ac30f294896cdaa5f46a2b8ac21246bae86",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/claude_runtime.py",
+      "resolved_source": {
+        "filename": "claude_runtime.py",
+        "sha256": "7ce00c149b06498b9d9c18f1aabe7ac30f294896cdaa5f46a2b8ac21246bae86"
+      }
+    },
+    {
+      "expected_sha256": "cd882f465bc8740945b269c39844f4ec33559f87b54b27013231dd7453a3be17",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/providers.py",
+      "resolved_source": {
+        "filename": "providers.py",
+        "sha256": "cd882f465bc8740945b269c39844f4ec33559f87b54b27013231dd7453a3be17"
+      }
+    },
+    {
+      "expected_sha256": "e5ce89d1ab1dd4e66ec6e46a37f2b23c99bb1d2a2a6e0519e11ae81d248baa08",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/grounding.py",
+      "resolved_source": {
+        "filename": "grounding.py",
+        "sha256": "e5ce89d1ab1dd4e66ec6e46a37f2b23c99bb1d2a2a6e0519e11ae81d248baa08"
+      }
+    },
+    {
+      "expected_sha256": "60014747d7a72dabab6501ef8934324588d261c443b309340be3af420b2f6614",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/guidance.py",
+      "resolved_source": {
+        "filename": "guidance.py",
+        "sha256": "60014747d7a72dabab6501ef8934324588d261c443b309340be3af420b2f6614"
+      }
+    },
+    {
+      "expected_sha256": "538374af2edde420c0f72b94424ac5855be74283c14b2cb70ed7f10ac8fa00ce",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/mcp.py",
+      "resolved_source": {
+        "filename": "mcp.py",
+        "sha256": "538374af2edde420c0f72b94424ac5855be74283c14b2cb70ed7f10ac8fa00ce"
+      }
+    },
+    {
+      "expected_sha256": "3db45d66e9c9515ea7eeb00a958093613f21c3e93d5be808686f6cf1511db379",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/methods.py",
+      "resolved_source": {
+        "filename": "methods.py",
+        "sha256": "3db45d66e9c9515ea7eeb00a958093613f21c3e93d5be808686f6cf1511db379"
+      }
+    },
+    {
+      "expected_sha256": "723c46bd2a7c0597deabeca61cdb7daee5f5a9fc7ae499f8fc188ed3c0d30fb8",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/method_worker.py",
+      "resolved_source": {
+        "filename": "method_worker.py",
+        "sha256": "723c46bd2a7c0597deabeca61cdb7daee5f5a9fc7ae499f8fc188ed3c0d30fb8"
+      }
+    },
+    {
+      "expected_sha256": "4997bc7ec71d28e543a63c49ccfbe3bfe75b75ed30ce886b452e3b663c2ef474",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/core.py",
+      "resolved_source": {
+        "filename": "core.py",
+        "sha256": "4997bc7ec71d28e543a63c49ccfbe3bfe75b75ed30ce886b452e3b663c2ef474"
+      }
+    },
+    {
+      "expected_sha256": "45a85dfd3b1f940001010f9d410f62a5749eb3194be81c04bd094afb72e4c6d6",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/economics.py",
+      "resolved_source": {
+        "filename": "economics.py",
+        "sha256": "45a85dfd3b1f940001010f9d410f62a5749eb3194be81c04bd094afb72e4c6d6"
+      }
+    },
+    {
+      "expected_sha256": "d211fed24d240a8b2430e52a95b0732e0127bc988becce46947662a76bb2ec78",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/data/candidates.json.gz",
+      "resolved_source": {
+        "filename": "candidates.json.gz",
+        "sha256": "d211fed24d240a8b2430e52a95b0732e0127bc988becce46947662a76bb2ec78"
+      }
+    },
+    {
+      "expected_sha256": "041072b8dff684cbf5c8eb0c32ec0407f47015a9bdd37e74511de002ec795866",
+      "location": "current_workspace",
+      "original_source": "platform/src/lanm_platform/data/lanm_handbook.md",
+      "resolved_source": {
+        "filename": "lanm_handbook.md",
+        "sha256": "041072b8dff684cbf5c8eb0c32ec0407f47015a9bdd37e74511de002ec795866"
+      }
+    }
+  ],
+  "trained_report_bindings": [
+    {
+      "profile_id": "qwen-4b-trained",
+      "report": {
+        "filename": "qwen4-trained.json",
+        "sha256": "c63ddba81c5e8eaf4768db90037281dc8f27a179ffa0b5ca1ee985c7681efa73"
+      },
+      "recorded_identity": {
+        "filename": "qwen4-trained.identity.json",
+        "sha256": "38158fd83d827feeab555594f2a6823ffb44b033463bc3bf4fa36afc8ee22ec5"
+      },
+      "artifact_identity": {
+        "adapter_config_sha256": "6228b6d25bb8983e4fa9cfb2d41b5f844486a3c8add3c947c8fcd1b69af3ad88",
+        "adapter_gguf_sha256": "08075e05447ab75d416cc12329b81bb60aba908e0e235e819313c850f6abf66e",
+        "adapter_sha256": "373e36cbbd70ea0c3067eb53f2c48bd883e953ebb9338d85b6733e14a70ce6c2",
+        "base_gguf_sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+        "llama_server_sha256": "26ac24742cf6f940d42f3f553bc62050a9b613b709f1437274ba953936e265b6",
+        "training_identity": {
+          "base_config_sha256": "ddc63e1c717afa86c865bb5e01313d89d72bb53b97ad4a8a03ba8510c0621670",
+          "base_manifest_sha256": "fef59ca43c694cb0e56d3b4878583a854826800d2f5899ad7b9084805201d296",
+          "compiler_provenance_sha256": "c985ae827eeef1932002e0fc26ebfc6e71702c1d8b408b6369a73780d9688bd1",
+          "environment_lock_sha256": "62fa75e0efea293d8dbc476e050291455ddd13c228ee23eb12e57e6eea8b7d89",
+          "masking_version": 1,
+          "native_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+          "settings": {
+            "accumulation": 8,
+            "epochs": 1.0,
+            "learning_rate": 0.0001,
+            "max_length": 4096,
+            "precision": "qlora4",
+            "rank": 16,
+            "seed": 42,
+            "size": "4B"
+          },
+          "targets": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "tokenizer_config_sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+          "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+          "train_sha256": "2cbccb69dbc1331f10b7239d5aeb7974f8c04696704bb1375b61f3515bd95cb0",
+          "trainer_sha256": "098e2f38fe3266cefe44cefc45ee8f1edf8be19a628db51ff874cfe8d4f077f8",
+          "validation_sha256": "5ff8663419539ccc4716260b8594aaa40490661ea50ef884e6f7fc0147cc33ed"
+        }
+      }
+    },
+    {
+      "profile_id": "qwen-4b-trained-thinking",
+      "report": {
+        "filename": "qwen4-trained-thinking.json",
+        "sha256": "3b4bf6ffcffdce2a26eba2b739e3d1e3aa28c388e2ebc7b657ae482b3ecef752"
+      },
+      "recorded_identity": {
+        "filename": "qwen4-trained-thinking.identity.json",
+        "sha256": "b66111c47d380f8f275111f3f092999e44fed386623eb0ccca502979b252e3c2"
+      },
+      "artifact_identity": {
+        "adapter_config_sha256": "6228b6d25bb8983e4fa9cfb2d41b5f844486a3c8add3c947c8fcd1b69af3ad88",
+        "adapter_gguf_sha256": "08075e05447ab75d416cc12329b81bb60aba908e0e235e819313c850f6abf66e",
+        "adapter_sha256": "373e36cbbd70ea0c3067eb53f2c48bd883e953ebb9338d85b6733e14a70ce6c2",
+        "base_gguf_sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+        "llama_server_sha256": "26ac24742cf6f940d42f3f553bc62050a9b613b709f1437274ba953936e265b6",
+        "training_identity": {
+          "base_config_sha256": "ddc63e1c717afa86c865bb5e01313d89d72bb53b97ad4a8a03ba8510c0621670",
+          "base_manifest_sha256": "fef59ca43c694cb0e56d3b4878583a854826800d2f5899ad7b9084805201d296",
+          "compiler_provenance_sha256": "c985ae827eeef1932002e0fc26ebfc6e71702c1d8b408b6369a73780d9688bd1",
+          "environment_lock_sha256": "62fa75e0efea293d8dbc476e050291455ddd13c228ee23eb12e57e6eea8b7d89",
+          "masking_version": 1,
+          "native_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+          "settings": {
+            "accumulation": 8,
+            "epochs": 1.0,
+            "learning_rate": 0.0001,
+            "max_length": 4096,
+            "precision": "qlora4",
+            "rank": 16,
+            "seed": 42,
+            "size": "4B"
+          },
+          "targets": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "tokenizer_config_sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+          "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+          "train_sha256": "2cbccb69dbc1331f10b7239d5aeb7974f8c04696704bb1375b61f3515bd95cb0",
+          "trainer_sha256": "098e2f38fe3266cefe44cefc45ee8f1edf8be19a628db51ff874cfe8d4f077f8",
+          "validation_sha256": "5ff8663419539ccc4716260b8594aaa40490661ea50ef884e6f7fc0147cc33ed"
+        }
+      }
+    },
+    {
+      "profile_id": "qwen-9b-trained",
+      "report": {
+        "filename": "qwen9-trained.json",
+        "sha256": "f5ff8177c9fae5f5850edb32fa77211c0492553a049b38d878b4e6d3550280e2"
+      },
+      "recorded_identity": {
+        "filename": "qwen9-trained.identity.json",
+        "sha256": "22a72cd74d3015993abb0f43514f1951b3071ac09bbd12df4319d1291e90259b"
+      },
+      "artifact_identity": {
+        "adapter_config_sha256": "fd7d1ca1f49e091aa5e89cc0522014c3de81d87a2522adc7d7512ac057fa4230",
+        "adapter_gguf_sha256": "12a3569cbc44bfa153f17a7fb368a8ead756dee470f26c4d685e6d1d15e599a8",
+        "adapter_sha256": "9c946f59796afd7b243c8b34dc51d803761da5a50f3ae9707b4e29f2d03ef681",
+        "base_gguf_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+        "llama_server_sha256": "26ac24742cf6f940d42f3f553bc62050a9b613b709f1437274ba953936e265b6",
+        "training_identity": {
+          "base_config_sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+          "base_manifest_sha256": "4e59f685f33368b2c08f5cd17567afa3d414d3f9397f9e23d6a3f5aa597bc256",
+          "compiler_provenance_sha256": "c985ae827eeef1932002e0fc26ebfc6e71702c1d8b408b6369a73780d9688bd1",
+          "environment_lock_sha256": "62fa75e0efea293d8dbc476e050291455ddd13c228ee23eb12e57e6eea8b7d89",
+          "masking_version": 1,
+          "native_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+          "settings": {
+            "accumulation": 8,
+            "epochs": 1.0,
+            "learning_rate": 0.0001,
+            "max_length": 4096,
+            "precision": "qlora4",
+            "rank": 16,
+            "seed": 42,
+            "size": "9B"
+          },
+          "targets": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "tokenizer_config_sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+          "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+          "train_sha256": "2cbccb69dbc1331f10b7239d5aeb7974f8c04696704bb1375b61f3515bd95cb0",
+          "trainer_sha256": "098e2f38fe3266cefe44cefc45ee8f1edf8be19a628db51ff874cfe8d4f077f8",
+          "validation_sha256": "5ff8663419539ccc4716260b8594aaa40490661ea50ef884e6f7fc0147cc33ed"
+        }
+      }
+    },
+    {
+      "profile_id": "qwen-9b-trained-thinking",
+      "report": {
+        "filename": "qwen9-trained-thinking.json",
+        "sha256": "a131917bea2c62daaf164a99aaad508c41ef2ddd15cffb606a811451bf0af057"
+      },
+      "recorded_identity": {
+        "filename": "qwen9-trained-thinking.identity.json",
+        "sha256": "609c166eb975520c134fe77369d82e09e53d65547c7777d1c63928bd7b7ca358"
+      },
+      "artifact_identity": {
+        "adapter_config_sha256": "fd7d1ca1f49e091aa5e89cc0522014c3de81d87a2522adc7d7512ac057fa4230",
+        "adapter_gguf_sha256": "12a3569cbc44bfa153f17a7fb368a8ead756dee470f26c4d685e6d1d15e599a8",
+        "adapter_sha256": "9c946f59796afd7b243c8b34dc51d803761da5a50f3ae9707b4e29f2d03ef681",
+        "base_gguf_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+        "llama_server_sha256": "26ac24742cf6f940d42f3f553bc62050a9b613b709f1437274ba953936e265b6",
+        "training_identity": {
+          "base_config_sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+          "base_manifest_sha256": "4e59f685f33368b2c08f5cd17567afa3d414d3f9397f9e23d6a3f5aa597bc256",
+          "compiler_provenance_sha256": "c985ae827eeef1932002e0fc26ebfc6e71702c1d8b408b6369a73780d9688bd1",
+          "environment_lock_sha256": "62fa75e0efea293d8dbc476e050291455ddd13c228ee23eb12e57e6eea8b7d89",
+          "masking_version": 1,
+          "native_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+          "settings": {
+            "accumulation": 8,
+            "epochs": 1.0,
+            "learning_rate": 0.0001,
+            "max_length": 4096,
+            "precision": "qlora4",
+            "rank": 16,
+            "seed": 42,
+            "size": "9B"
+          },
+          "targets": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "tokenizer_config_sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+          "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+          "train_sha256": "2cbccb69dbc1331f10b7239d5aeb7974f8c04696704bb1375b61f3515bd95cb0",
+          "trainer_sha256": "098e2f38fe3266cefe44cefc45ee8f1edf8be19a628db51ff874cfe8d4f077f8",
+          "validation_sha256": "5ff8663419539ccc4716260b8594aaa40490661ea50ef884e6f7fc0147cc33ed"
+        }
+      }
+    },
+    {
+      "profile_id": "qwen-4b-trained",
+      "report": {
+        "filename": "clarified-qwen4-trained.json",
+        "sha256": "a27e11faebd9b0c91fe397af9f67a110f688b227b5abcd09cc72375a4904d932"
+      },
+      "recorded_identity": {
+        "filename": "clarified-qwen4-trained.identity.json",
+        "sha256": "6c77bd4789821499a2ed1b71eed1d6fa22a015b400b8fc5a797bda98369b67ab"
+      },
+      "artifact_identity": {
+        "adapter_config_sha256": "6228b6d25bb8983e4fa9cfb2d41b5f844486a3c8add3c947c8fcd1b69af3ad88",
+        "adapter_gguf_sha256": "08075e05447ab75d416cc12329b81bb60aba908e0e235e819313c850f6abf66e",
+        "adapter_sha256": "373e36cbbd70ea0c3067eb53f2c48bd883e953ebb9338d85b6733e14a70ce6c2",
+        "base_gguf_sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+        "llama_server_sha256": "26ac24742cf6f940d42f3f553bc62050a9b613b709f1437274ba953936e265b6",
+        "training_identity": {
+          "base_config_sha256": "ddc63e1c717afa86c865bb5e01313d89d72bb53b97ad4a8a03ba8510c0621670",
+          "base_manifest_sha256": "fef59ca43c694cb0e56d3b4878583a854826800d2f5899ad7b9084805201d296",
+          "compiler_provenance_sha256": "c985ae827eeef1932002e0fc26ebfc6e71702c1d8b408b6369a73780d9688bd1",
+          "environment_lock_sha256": "62fa75e0efea293d8dbc476e050291455ddd13c228ee23eb12e57e6eea8b7d89",
+          "masking_version": 1,
+          "native_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+          "settings": {
+            "accumulation": 8,
+            "epochs": 1.0,
+            "learning_rate": 0.0001,
+            "max_length": 4096,
+            "precision": "qlora4",
+            "rank": 16,
+            "seed": 42,
+            "size": "4B"
+          },
+          "targets": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "tokenizer_config_sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+          "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+          "train_sha256": "2cbccb69dbc1331f10b7239d5aeb7974f8c04696704bb1375b61f3515bd95cb0",
+          "trainer_sha256": "098e2f38fe3266cefe44cefc45ee8f1edf8be19a628db51ff874cfe8d4f077f8",
+          "validation_sha256": "5ff8663419539ccc4716260b8594aaa40490661ea50ef884e6f7fc0147cc33ed"
+        }
+      }
+    },
+    {
+      "profile_id": "qwen-4b-trained-thinking",
+      "report": {
+        "filename": "clarified-qwen4-trained-thinking.json",
+        "sha256": "d1470e985e6065127237aa8738e56f939343677073583c2e7f92cc08958087ad"
+      },
+      "recorded_identity": {
+        "filename": "clarified-qwen4-trained-thinking.identity.json",
+        "sha256": "f973a262551e016673f0d40a4ebbcc8951987ccc164df88034f6d761a1cc1d1c"
+      },
+      "artifact_identity": {
+        "adapter_config_sha256": "6228b6d25bb8983e4fa9cfb2d41b5f844486a3c8add3c947c8fcd1b69af3ad88",
+        "adapter_gguf_sha256": "08075e05447ab75d416cc12329b81bb60aba908e0e235e819313c850f6abf66e",
+        "adapter_sha256": "373e36cbbd70ea0c3067eb53f2c48bd883e953ebb9338d85b6733e14a70ce6c2",
+        "base_gguf_sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+        "llama_server_sha256": "26ac24742cf6f940d42f3f553bc62050a9b613b709f1437274ba953936e265b6",
+        "training_identity": {
+          "base_config_sha256": "ddc63e1c717afa86c865bb5e01313d89d72bb53b97ad4a8a03ba8510c0621670",
+          "base_manifest_sha256": "fef59ca43c694cb0e56d3b4878583a854826800d2f5899ad7b9084805201d296",
+          "compiler_provenance_sha256": "c985ae827eeef1932002e0fc26ebfc6e71702c1d8b408b6369a73780d9688bd1",
+          "environment_lock_sha256": "62fa75e0efea293d8dbc476e050291455ddd13c228ee23eb12e57e6eea8b7d89",
+          "masking_version": 1,
+          "native_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+          "settings": {
+            "accumulation": 8,
+            "epochs": 1.0,
+            "learning_rate": 0.0001,
+            "max_length": 4096,
+            "precision": "qlora4",
+            "rank": 16,
+            "seed": 42,
+            "size": "4B"
+          },
+          "targets": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "tokenizer_config_sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+          "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+          "train_sha256": "2cbccb69dbc1331f10b7239d5aeb7974f8c04696704bb1375b61f3515bd95cb0",
+          "trainer_sha256": "098e2f38fe3266cefe44cefc45ee8f1edf8be19a628db51ff874cfe8d4f077f8",
+          "validation_sha256": "5ff8663419539ccc4716260b8594aaa40490661ea50ef884e6f7fc0147cc33ed"
+        }
+      }
+    },
+    {
+      "profile_id": "qwen-9b-trained",
+      "report": {
+        "filename": "clarified-qwen9-trained.json",
+        "sha256": "b7192c394353a76f3def559f8b56ef7d2f69313e032ffab27bdf411b5e6e8486"
+      },
+      "recorded_identity": {
+        "filename": "clarified-qwen9-trained.identity.json",
+        "sha256": "8cd5c17e4fce3fb67534e9c402a60c2e1b5f091c8d9d9c6f805a796c33834c41"
+      },
+      "artifact_identity": {
+        "adapter_config_sha256": "fd7d1ca1f49e091aa5e89cc0522014c3de81d87a2522adc7d7512ac057fa4230",
+        "adapter_gguf_sha256": "12a3569cbc44bfa153f17a7fb368a8ead756dee470f26c4d685e6d1d15e599a8",
+        "adapter_sha256": "9c946f59796afd7b243c8b34dc51d803761da5a50f3ae9707b4e29f2d03ef681",
+        "base_gguf_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+        "llama_server_sha256": "26ac24742cf6f940d42f3f553bc62050a9b613b709f1437274ba953936e265b6",
+        "training_identity": {
+          "base_config_sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+          "base_manifest_sha256": "4e59f685f33368b2c08f5cd17567afa3d414d3f9397f9e23d6a3f5aa597bc256",
+          "compiler_provenance_sha256": "c985ae827eeef1932002e0fc26ebfc6e71702c1d8b408b6369a73780d9688bd1",
+          "environment_lock_sha256": "62fa75e0efea293d8dbc476e050291455ddd13c228ee23eb12e57e6eea8b7d89",
+          "masking_version": 1,
+          "native_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+          "settings": {
+            "accumulation": 8,
+            "epochs": 1.0,
+            "learning_rate": 0.0001,
+            "max_length": 4096,
+            "precision": "qlora4",
+            "rank": 16,
+            "seed": 42,
+            "size": "9B"
+          },
+          "targets": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "tokenizer_config_sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+          "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+          "train_sha256": "2cbccb69dbc1331f10b7239d5aeb7974f8c04696704bb1375b61f3515bd95cb0",
+          "trainer_sha256": "098e2f38fe3266cefe44cefc45ee8f1edf8be19a628db51ff874cfe8d4f077f8",
+          "validation_sha256": "5ff8663419539ccc4716260b8594aaa40490661ea50ef884e6f7fc0147cc33ed"
+        }
+      }
+    },
+    {
+      "profile_id": "qwen-9b-trained-thinking",
+      "report": {
+        "filename": "clarified-qwen9-trained-thinking.json",
+        "sha256": "0f978eb39d109500fb4460789d306ce5d723af6dee0e0a0583d3be573901f6e8"
+      },
+      "recorded_identity": {
+        "filename": "clarified-qwen9-trained-thinking.identity.json",
+        "sha256": "30684dce754a17c47c5e0ee27eb03c8672d0fe687483d8c0add91793ebbfb7dc"
+      },
+      "artifact_identity": {
+        "adapter_config_sha256": "fd7d1ca1f49e091aa5e89cc0522014c3de81d87a2522adc7d7512ac057fa4230",
+        "adapter_gguf_sha256": "12a3569cbc44bfa153f17a7fb368a8ead756dee470f26c4d685e6d1d15e599a8",
+        "adapter_sha256": "9c946f59796afd7b243c8b34dc51d803761da5a50f3ae9707b4e29f2d03ef681",
+        "base_gguf_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+        "llama_server_sha256": "26ac24742cf6f940d42f3f553bc62050a9b613b709f1437274ba953936e265b6",
+        "training_identity": {
+          "base_config_sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+          "base_manifest_sha256": "4e59f685f33368b2c08f5cd17567afa3d414d3f9397f9e23d6a3f5aa597bc256",
+          "compiler_provenance_sha256": "c985ae827eeef1932002e0fc26ebfc6e71702c1d8b408b6369a73780d9688bd1",
+          "environment_lock_sha256": "62fa75e0efea293d8dbc476e050291455ddd13c228ee23eb12e57e6eea8b7d89",
+          "masking_version": 1,
+          "native_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+          "settings": {
+            "accumulation": 8,
+            "epochs": 1.0,
+            "learning_rate": 0.0001,
+            "max_length": 4096,
+            "precision": "qlora4",
+            "rank": 16,
+            "seed": 42,
+            "size": "9B"
+          },
+          "targets": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "tokenizer_config_sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+          "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+          "train_sha256": "2cbccb69dbc1331f10b7239d5aeb7974f8c04696704bb1375b61f3515bd95cb0",
+          "trainer_sha256": "098e2f38fe3266cefe44cefc45ee8f1edf8be19a628db51ff874cfe8d4f077f8",
+          "validation_sha256": "5ff8663419539ccc4716260b8594aaa40490661ea50ef884e6f7fc0147cc33ed"
+        }
+      }
+    }
+  ]
+}
