@@ -116,7 +116,7 @@ def handler_for(app):
                 if len(parts)==3 and parts[:2]==["api","guidance"]: return self._json(guidance.read(parts[2]))
                 if path=="/api/library-evidence": return self._json(app.store.library_evidence(query.get("candidate_id")))
                 if path=="/api/candidates":
-                    result=app.store.list_candidates(query["project_id"],query.get("q",""),query.get("pool","all"),min(100,int(query.get("limit",100))))
+                    result=app.store.list_candidates(query["project_id"],query.get("q",""),query.get("pool","all"),min(1000,int(query.get("limit",100))))
                     return self._json(result if isinstance(result,dict) else {"candidates":result,"total":len(result)})
                 if len(parts)==3 and parts[:2]==["api","candidates"]:
                     return self._json(app.store.get_candidate(parts[2],query.get("project_id")))

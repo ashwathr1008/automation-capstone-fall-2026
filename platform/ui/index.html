@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>LanM Research</title>
-  <link rel="stylesheet" href="/styles.css">
-  <script src="/app.js" defer></script>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./integration.js" defer></script>
+  <script src="./app.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to workspace</a>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="/" aria-label="LanM Research home">
+      <a class="brand" href="./" aria-label="LanM Research home">
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 8l9-4 9 8-3 13-12 2-5-10zM7 8l15 17M16 4L10 27M5 17l20-5"/><circle cx="7" cy="8" r="3"/><circle cx="16" cy="4" r="2.4"/><circle cx="25" cy="12" r="3"/><circle cx="22" cy="25" r="3"/><circle cx="10" cy="27" r="2.4"/><circle cx="5" cy="17" r="2.4"/></svg></span>
         <span>LanM <strong>Research</strong><small>Scientific workspace</small></span>
       </a>
@@ -25,6 +26,11 @@
 
     <main id="main" class="main">
       <div id="global-error" class="notice error global-error" role="alert" hidden></div>
+      <div id="embedded-project-bar" class="embedded-project-bar" hidden>
+        <label for="embedded-project-select">Research project</label>
+        <select id="embedded-project-select" aria-label="Research project"><option value="">Loading projects…</option></select>
+        <button id="embedded-new-project" class="button small-button" type="button">New project</button>
+      </div>
       <section id="welcome" class="welcome" hidden>
         <div class="welcome-orbit" aria-hidden="true"><span>La</span><span>Nd</span><span>Dy</span><i>LanM</i></div>
         <span class="eyebrow">A PLACE FOR YOUR RESEARCH</span>
@@ -40,6 +46,13 @@
           <button id="project-settings" class="button subtle small-button">Project settings <span aria-hidden="true">↗</span></button>
         </header>
         <div class="project-strip"><span class="pair-badge"><strong id="project-target"></strong><span> / </span><strong id="project-competitor"></strong></span><span id="configuration-label">Project configuration</span><span class="strip-spacer"></span><span id="project-revision" class="mono"></span><span id="experiment-count"></span></div>
+        <nav id="embedded-tabs" class="embedded-tabs" aria-label="Research workspace" hidden>
+          <button id="embedded-tab-chat" class="tab active" data-research-view="chat" aria-controls="panel-research" aria-pressed="true">Chat</button>
+          <button id="embedded-tab-build" class="tab" data-research-view="build" aria-controls="panel-research" aria-pressed="false">Build</button>
+          <button id="embedded-tab-candidates" class="tab" data-research-view="candidates" aria-controls="panel-library" aria-pressed="false">Candidates</button>
+          <button id="embedded-tab-database" class="tab" data-research-view="database" aria-controls="panel-evidence" aria-pressed="false">Database</button>
+          <button id="embedded-tab-tools" class="tab" data-research-view="tools" aria-controls="panel-model" aria-pressed="false">Tools & models</button>
+        </nav>
         <div class="workspace-toolbar">
           <nav class="tabs" aria-label="Workspace sections" role="tablist">
             <button class="tab active" data-tab="research" id="tab-research" role="tab" aria-controls="panel-research" aria-selected="true">Conversation</button>
@@ -91,6 +104,12 @@
           <div class="section-heading"><div><span class="eyebrow">THE SCIENTIFIC RECORD</span><h2>Evidence you can return to.</h2><p>Archive source text and its reference. A saved source does not automatically become a measured input.</p></div><button id="add-source" class="button primary">Add source evidence</button></div>
           <div class="evidence-toolbar"><button id="search-pubmed" class="button">Search PubMed</button><button id="open-handbook" class="button">LanM handbook</button><span class="small muted">Find literature or inspect the guidance used in research.</span></div>
           <div id="sources-list" class="sources-grid"></div>
+          <section class="shared-records" aria-labelledby="shared-records-title">
+            <div class="section-heading"><div><span class="eyebrow">SHARED LIBRARY</span><h2 id="shared-records-title">Browse the underlying records.</h2><p>Inspect scientific contexts, assertions, formulas, and reviewed shared evidence. These records are available across research projects.</p></div><button id="refresh-shared-records" class="button">Refresh records</button></div>
+            <div class="shared-record-controls"><label class="field">Search shared records<input id="shared-record-search" type="search" placeholder="Candidate ID, source, equation, or keyword"></label><label class="field">Record type<select id="shared-record-kind"><option value="all">All records</option><option value="contexts">Contexts</option><option value="assertions">Assertions</option><option value="formulas">Formulas</option><option value="shared_evidence">Reviewed shared evidence</option></select></label></div>
+            <p id="shared-record-count" class="small muted" aria-live="polite">Open this section to load shared records.</p>
+            <div id="shared-record-list" class="shared-record-list"></div>
+          </section>
         </section>
       </div>
     </main>

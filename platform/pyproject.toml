@@ -23,4 +23,4 @@ where = ["src"]
 lanm_platform = ["data/*.gz", "data/*.md", "data/*.zip"]
 
 [tool.setuptools.data-files]
-"share/lanm-platform/ui" = ["ui/index.html", "ui/app.js", "ui/styles.css"]
+"share/lanm-platform/ui" = ["ui/index.html", "ui/integration.js", "ui/app.js", "ui/styles.css"]

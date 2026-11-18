@@ -196,6 +196,29 @@ class HTTPIntegrationTests(unittest.TestCase):
         connection.close()
         return response.status, json.loads(raw)
 
+    def test_http_candidate_browser_can_retrieve_the_complete_current_library(self):
+        status, default_page = self.request("GET", f"/api/candidates?project_id={self.pid}")
+        self.assertEqual(status, 200)
+        self.assertEqual(len(default_page["candidates"]), 100)
+        status, complete = self.request("GET", f"/api/candidates?project_id={self.pid}&limit=1000")
+        self.assertEqual(status, 200)
+        self.assertGreater(complete["total"], 100)
+        self.assertEqual(len(complete["candidates"]), complete["total"])
+        self.assertEqual(len({candidate["id"] for candidate in complete["candidates"]}), complete["total"])
+        status, bounded = self.request("GET", f"/api/candidates?project_id={self.pid}&limit=100000")
+        self.assertEqual(status, 200)
+        self.assertLessEqual(len(bounded["candidates"]), 1000)
+
+    def test_standalone_ui_keeps_frame_protection_and_serves_integration_script(self):
+        for path in ("/", "/?embed=argus", "/integration.js"):
+            connection = http.client.HTTPConnection("127.0.0.1", self.server.server_port, timeout=10)
+            connection.request("GET", path)
+            response = connection.getresponse()
+            self.assertEqual(response.status, 200)
+            self.assertIn("frame-ancestors 'none'", response.getheader("Content-Security-Policy"))
+            self.assertTrue(response.read())
+            connection.close()
+
     def test_http_scientific_update_requires_explicit_accept_and_matched_context(self):
         conditions = {"target": "Nd", "support": "agarose", "feed": "defined nitrate mixture"}
         status, configured = self.request("POST", f"/api/projects/{self.pid}", {"changes": {"configuration": conditions}, "reason": "Define the next experiment"})

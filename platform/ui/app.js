@@ -2,7 +2,10 @@
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const state = {projects: [], project: null, candidates: [], methods: [], sources: [], runs: [], testingBatches: [], pool: 'all', mode: 'research', tab: 'research', job: null, stream: null, runtime: null, candidateRequest: 0};
+const integration = LanMIntegration.context(window.location, window.parent !== window);
+const projectStorageKey = integration.embedded ? 'argus-research-project' : 'lanm-project';
+const state = {projects: [], project: null, candidates: [], methods: [], sources: [], runs: [], testingBatches: [], sharedRecords: [], pool: 'all', mode: 'research', tab: 'research', job: null, chatSubmitting: false, stream: null, runtime: null, candidateRequest: 0, projectRequest: 0, initialized: false, pendingSelection: null};
+const apiPath = path => LanMIntegration.apiPath(path, integration.prefix);
 const metals = ['La', 'Ce', 'Pr', 'Nd', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Y'];
 const fieldInfo = {
   prepared_material_cost_usd_per_l: ['Prepared material cost', 'USD / L of bed'],
@@ -67,12 +70,10 @@ function badge(text, kind = '') { return node('span', 'badge ' + kind, text); }
 function asList(value) { return Array.isArray(value) ? value : value ? [value] : []; }
 function safeUrl(value) { try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) ? url.href : null; } catch { return null; } }
 function testingDownloadUrl(value) {
-  try {
-    const url = new URL(value, window.location.origin);
-    if (!state.project || url.origin !== window.location.origin || url.username || url.password || url.search || url.hash) return null;
-    const match = /^\/api\/projects\/([A-Za-z0-9_-]+)\/testing-batches\/([A-Za-z0-9_-]+)\/csv$/.exec(url.pathname);
-    return match && match[1] === state.project.id ? url.href : null;
-  } catch { return null; }
+  const url = LanMIntegration.localApiUrl(value, window.location.origin, integration.prefix);
+  if (!state.project || !url) return null;
+  const match = /^\/api\/projects\/([A-Za-z0-9_-]+)\/testing-batches\/([A-Za-z0-9_-]+)\/csv$/.exec(url.path);
+  return match && match[1] === state.project.id ? url.href : null;
 }
 function link(text, url, preview = true) {
   const download = testingDownloadUrl(url);
@@ -109,7 +110,7 @@ async function api(path, options = {}) {
   const init = {...options, headers: {'Accept': 'application/json', ...(options.body ? {'Content-Type': 'application/json'} : {}), ...options.headers}};
   if (options.body && typeof options.body !== 'string') init.body = JSON.stringify(options.body);
   let response;
-  try { response = await fetch(path, init); } catch { throw new Error('The local workspace is not responding. Check that its server is running.'); }
+  try { response = await fetch(apiPath(path), init); } catch { throw new Error('The local workspace is not responding. Check that its server is running.'); }
   let data;
   try { data = await response.json(); } catch { throw new Error(`The server returned an unreadable response (${response.status}).`); }
   if (!response.ok || data.error) throw new Error(typeof data.error === 'string' ? data.error : data.error?.message || `Request failed (${response.status}).`);
@@ -130,15 +131,56 @@ async function busy(control, work, errorHandler = null) {
   try { return await work(); } catch (error) { if (errorHandler) errorHandler(error.message); else toast(error.message, true); }
   finally { if (control) control.disabled = false; }
 }
-function showDialog(id) { const dialog = $(id); const form = $('form', dialog); if (form) formError(form); dialog.showModal(); }
-function showDetail(kicker, content) { $('#detail-kicker').textContent = kicker; replace($('#detail-content'), content); const dialog = $('#detail-dialog'); dialog.classList.toggle('evidence-dialog', content.classList.contains('evidence-preview')); if (!dialog.open) dialog.showModal(); dialog.scrollTop = 0; }
+function showDialog(id) { const dialog = $(id); const form = $('form', dialog); if (form) formError(form); dialog.showModal(); syncEmbedded(); }
+function showDetail(kicker, content) { $('#detail-kicker').textContent = kicker; replace($('#detail-content'), content); const dialog = $('#detail-dialog'); dialog.classList.toggle('evidence-dialog', content.classList.contains('evidence-preview')); if (!dialog.open) dialog.showModal(); dialog.scrollTop = 0; syncEmbedded(); }
+function researchBusyReason() { return state.job || state.chatSubmitting ? 'turn' : $$('dialog').some(dialog => dialog.open) ? 'dialog' : null; }
+function researchBusy() { return Boolean(researchBusyReason()); }
+function researchView() {
+  if (state.tab === 'research') return state.mode === 'build' ? 'build' : 'chat';
+  return {library: 'candidates', evidence: 'database', model: 'tools'}[state.tab] || 'chat';
+}
+function syncEmbedded() {
+  if (!integration.embedded) return;
+  const view = researchView();
+  $$('[data-research-view]').forEach(item => { const active = item.dataset.researchView === view; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); });
+  $('#embedded-project-select').value = state.project?.id || '';
+  $('#embedded-project-select').disabled = researchBusy() || !state.projects.length;
+  $('#embedded-new-project').disabled = researchBusy();
+  const panel = $('#panel-' + state.tab); if (panel) panel.setAttribute('aria-labelledby', 'embedded-tab-' + view);
+  if (state.initialized) window.parent.postMessage({type: 'lanm:research-state', projectId: state.project?.id || null, projectName: state.project?.name || '', view, busy: researchBusy(), busyReason: researchBusyReason(), ready: true}, window.location.origin);
+}
+function selectResearchView(view) {
+  if (!Object.hasOwn(LanMIntegration.views, view)) return;
+  if (view === 'chat' || view === 'build') setMode(view === 'build' ? 'build' : 'research');
+  goTab(LanMIntegration.views[view]);
+}
+async function applyResearchSelection(selection) {
+  if (selection.projectId && selection.projectId !== state.project?.id) {
+    if (!await selectProject(selection.projectId)) return;
+  }
+  if (selection.view) selectResearchView(selection.view);
+  syncEmbedded();
+}
+function initializeEmbedding() {
+  if (!integration.embedded) return;
+  document.body.classList.add('argus-embedded');
+  $('#embedded-project-bar').hidden = false; $('#embedded-tabs').hidden = false;
+  document.title = 'ARGUS Research workspace';
+  window.addEventListener('message', event => {
+    const selection = LanMIntegration.selectionMessage(event, window.parent, window.location.origin);
+    if (!selection) return;
+    if (!state.initialized) { state.pendingSelection = selection; return; }
+    applyResearchSelection(selection).catch(error => { toast(error.message, true); syncEmbedded(); });
+  });
+}
 function goTab(tab) {
   state.tab = tab;
   $$('[data-tab]').forEach(item => { const active = item.dataset.tab === tab; item.classList.toggle('active', active); item.setAttribute('aria-selected', String(active)); });
   $$('.tab-panel').forEach(item => { item.hidden = item.id !== 'panel-' + tab; });
   if (tab === 'library' && state.project) { loadCandidates().catch(error => toast(error.message, true)); loadTestingBatches().catch(error => toast(error.message, true)); }
-  if (tab === 'evidence' && state.project) loadSources().catch(error => toast(error.message, true));
+  if (tab === 'evidence' && state.project) { loadSources().catch(error => toast(error.message, true)); loadSharedRecords().catch(error => toast(error.message, true)); }
   if (tab === 'model' && state.project) { loadMethods().catch(error => toast(error.message, true)); loadRuns().catch(error => toast(error.message, true)); loadScalePredictions().catch(error => toast(error.message, true)); }
+  syncEmbedded();
 }
 function setMode(mode) {
   state.mode = mode;
@@ -147,6 +189,7 @@ function setMode(mode) {
   $('#composer-mode').textContent = mode === 'build' ? 'Build and inspect a reusable method' : 'Research with saved evidence';
   $('#chat-input').placeholder = mode === 'build' ? 'Describe the method to build, its inputs, and the scientific assumptions it should make explicit…' : 'Ask about lanmodulins, examine an assumption, or explore the evidence…';
   if (!$('#messages .message')) renderMessages([]);
+  syncEmbedded();
 }
 
 async function loadStatus() {
@@ -177,23 +220,38 @@ function renderProjects() {
     item.append(node('span', 'project-icon', '⌁'), label); item.title = project.name; list.append(item);
   }
   if (!state.projects.length) list.append(node('p', 'muted small', 'Your projects will appear here.'));
+  if (integration.embedded) {
+    replace($('#embedded-project-select'), ...state.projects.map(project => Object.assign(node('option', '', project.name), {value: project.id})));
+    if (!state.projects.length) $('#embedded-project-select').append(Object.assign(node('option', '', 'Create a project to begin'), {value: ''}));
+    syncEmbedded();
+  }
 }
 async function selectProject(id) {
-  if (state.job && state.project?.id !== id) { toast('Finish or stop the active conversation before switching projects.'); return; }
+  if (researchBusy() && state.project?.id !== id) { toast(researchBusyReason() === 'dialog' ? 'Close the open dialog before switching projects.' : 'Finish or stop the active conversation before switching projects.'); syncEmbedded(); return false; }
+  if (state.project?.id === id) { syncEmbedded(); return true; }
+  const request = ++state.projectRequest;
   try {
-    const data = await api('/api/projects/' + encodeURIComponent(id)); state.project = data.project || data; state.runs = []; state.testingBatches = []; replace($('#testing-batch-list'));
-    try { localStorage.setItem('lanm-project', id); } catch {}
+    const data = await api('/api/projects/' + encodeURIComponent(id));
+    if (request !== state.projectRequest) return false;
+    if (researchBusy() && state.project?.id !== id) { syncEmbedded(); return false; }
+    state.project = data.project || data; state.runs = []; state.testingBatches = []; replace($('#testing-batch-list'));
+    if (!state.projects.some(project => project.id === state.project.id)) state.projects.push(state.project);
+    try { localStorage.setItem(projectStorageKey, id); } catch {}
     $('#welcome').hidden = true; $('#workspace').hidden = false; $('#global-error').hidden = true;
     $('#ranking-result').hidden = true; $('#calculation-result').hidden = true;
     renderProjects(); renderProject();
     const results = await Promise.allSettled([loadMessages(), loadCandidates(), loadSources(), loadRuns(), loadScalePredictions(), loadTestingBatches()]);
     results.forEach(result => { if (result.status === 'rejected') toast(result.reason.message, true); });
     requestAnimationFrame(() => { $('#messages').scrollTop = $('#messages').scrollHeight; });
-  } catch (error) { showGlobalError(error.message); }
+    if (request !== state.projectRequest) return false;
+    syncEmbedded(); return true;
+  } catch (error) { if (request === state.projectRequest) { showGlobalError(error.message); syncEmbedded(); } return false; }
 }
 async function refreshProject() {
   if (!state.project) return;
-  const data = await api('/api/projects/' + encodeURIComponent(state.project.id)); state.project = data.project || data;
+  const projectId = state.project.id; const data = await api('/api/projects/' + encodeURIComponent(projectId));
+  if (state.project?.id !== projectId) return;
+  state.project = data.project || data;
   state.runs = state.runs.map(run => ({...run, stale: run.revision !== undefined && run.revision !== state.project.revision})); renderProject();
   state.projects = state.projects.map(item => item.id === state.project.id ? {...item, ...state.project} : item); renderProjects();
 }
@@ -267,11 +325,12 @@ function renderMessages(messages) {
   for (const message of messages) target.append(messageNode(message.role, message.content || message.text || ''));
   target.scrollTop = target.scrollHeight;
 }
-async function loadMessages() { if (!state.project) return; const data = await api(`/api/projects/${encodeURIComponent(state.project.id)}/messages`); renderMessages(data.messages || []); }
+async function loadMessages() { const projectId = state.project?.id; if (!projectId) return; const data = await api(`/api/projects/${encodeURIComponent(projectId)}/messages`); if (state.project?.id === projectId) renderMessages(data.messages || []); }
 async function submitChat(event) {
-  event.preventDefault(); if (!state.project || state.job) return;
+  event.preventDefault(); if (!state.project || researchBusy()) return;
   const input = $('#chat-input'); const message = input.value.trim(); if (!message) return;
-  await busy($('#send-message'), async () => {
+  state.chatSubmitting = true; syncEmbedded();
+  try { await busy($('#send-message'), async () => {
     const payload = {message, mode: state.mode}; const model = $('#model-select').value; if (model) payload.model = model;
     const data = await api(`/api/projects/${encodeURIComponent(state.project.id)}/chat`, {method: 'POST', body: payload});
     if (!data.job_id) throw new Error('The agent did not return a task identifier.');
@@ -280,11 +339,11 @@ async function submitChat(event) {
     state.job = {id: data.job_id, projectId: state.project.id, response, text: ''}; input.value = ''; input.disabled = true;
     $('#job-activity').hidden = false; $('#job-activity-text').textContent = 'Connecting to the research agent…'; $('#conversation-saved').textContent = 'Work in progress';
     startStream(data.job_id); $('#messages').scrollTop = $('#messages').scrollHeight;
-  });
+  }); } finally { state.chatSubmitting = false; syncEmbedded(); }
   if (state.job) $('#send-message').disabled = true;
 }
 function startStream(jobId) {
-  state.stream?.close(); const stream = new EventSource(`/api/jobs/${encodeURIComponent(jobId)}/events`); state.stream = stream;
+  state.stream?.close(); const stream = new EventSource(apiPath(`/api/jobs/${encodeURIComponent(jobId)}/events`)); state.stream = stream;
   stream.onopen = () => { if (state.job?.id === jobId) { state.job.text = ''; $('.message-body', state.job.response).textContent = ''; } };
   stream.onmessage = event => {
     let data; try { data = JSON.parse(event.data); } catch { return; }
@@ -303,6 +362,7 @@ function startStream(jobId) {
 async function finishJob(data, error = null) {
   const job = state.job; if (!job) return;
   state.stream?.close(); state.stream = null; state.job = null;
+  syncEmbedded();
   $('#chat-input').disabled = false; $('#send-message').disabled = false; $('#cancel-job').disabled = false; $('#job-activity').hidden = true; $('#conversation-saved').textContent = 'Saved with this project';
   job.response.classList.remove('streaming'); renderRichText($('.message-body', job.response), job.text || data.answer || data.text || (error ? 'This request did not finish.' : 'Task completed.'));
   if (error) toast(error, true); else if (data.status === 'cancelled' || data.status === 'interrupted') toast('Task stopped. Completed changes remain saved.');
@@ -312,7 +372,7 @@ async function finishJob(data, error = null) {
 
 async function loadCandidates() {
   if (!state.project) return;
-  const request = ++state.candidateRequest; const params = new URLSearchParams({project_id: state.project.id, q: $('#candidate-search').value.trim(), pool: state.pool});
+  const request = ++state.candidateRequest; const params = new URLSearchParams({project_id: state.project.id, q: $('#candidate-search').value.trim(), pool: state.pool, limit: '1000'});
   const data = await api('/api/candidates?' + params); if (request !== state.candidateRequest) return;
   state.candidates = data.candidates || []; const total = data.total ?? state.candidates.length;
   $('#candidate-count').textContent = state.candidates.length < total ? `Showing ${state.candidates.length} of ${number(total, 0)} candidates` : `${number(total, 0)} candidate${total === 1 ? '' : 's'}`;
@@ -635,7 +695,8 @@ function renderRanking(result) {
   replace(target, card); target.hidden = false;
 }
 async function loadRuns() {
-  if (!state.project) return; const data = await api(`/api/projects/${encodeURIComponent(state.project.id)}/runs`); state.runs = data.runs || [];
+  const projectId = state.project?.id; if (!projectId) return; const data = await api(`/api/projects/${encodeURIComponent(projectId)}/runs`);
+  if (state.project?.id !== projectId) return; state.runs = data.runs || [];
   const latestCalculation = state.runs.find(run => (run.result || run).kind !== 'rank'); renderLatest(latestCalculation ? latestCalculation.result || latestCalculation : null);
   const list = $('#run-list'); replace(list);
   for (const run of state.runs.slice(0, 15)) {
@@ -741,6 +802,37 @@ function sourceLabel(source) {
   if (source.origin === 'reviewed_shared_evidence') return 'Shared evidence';
   if (source.evidence_kind === 'retrieved_literature_abstract') return 'PubMed citation / abstract';
   return source.origin === 'user_upload' || source.text ? 'Project evidence' : 'Published source';
+}
+async function loadSharedRecords() {
+  $('#shared-record-count').textContent = 'Loading shared records…';
+  try {
+    const data = await api('/api/library-evidence');
+    state.sharedRecords = ['contexts', 'assertions', 'formulas', 'shared_evidence'].flatMap(kind => (data[kind] || []).map(record => ({kind, record})));
+    renderSharedRecords();
+  } catch (error) { $('#shared-record-count').textContent = 'Shared records could not be loaded.'; throw error; }
+}
+function renderSharedRecords(limit = 50) {
+  const query = $('#shared-record-search').value.trim().toLocaleLowerCase(); const kind = $('#shared-record-kind').value;
+  const records = state.sharedRecords.filter(item => (kind === 'all' || kind === item.kind) && (!query || JSON.stringify(item.record).toLocaleLowerCase().includes(query)));
+  const shown = records.slice(0, limit); const list = $('#shared-record-list'); replace(list);
+  $('#shared-record-count').textContent = `${number(records.length, 0)} matching records · ${number(state.sharedRecords.length, 0)} shared records${shown.length < records.length ? ` · showing ${shown.length}` : ''}`;
+  const labels = {contexts: 'Context', assertions: 'Assertion', formulas: 'Formula', shared_evidence: 'Reviewed shared evidence'};
+  for (const {kind: recordKind, record} of shown) {
+    const title = record.title || record.name || record.label || record.id || labels[recordKind];
+    const card = button('', () => {
+      const content = node('div'); content.append(node('h2', 'detail-title', title), badge(labels[recordKind], 'neutral'), objectDetails(record));
+      const context = state.sharedRecords.find(item => item.kind === 'contexts' && item.record.id === record.context_id)?.record;
+      const candidateId = record.candidate_id || context?.candidate_id;
+      if (candidateId) content.append(button('Inspect candidate', () => inspectCandidate(candidateId), 'button'));
+      const sourceId = recordKind === 'shared_evidence' ? record.id : record.source_id || context?.source_id;
+      if (sourceId && state.sources.some(source => source.id === sourceId)) content.append(button('Preview source evidence', () => previewEvidence({source_id: sourceId}), 'button'));
+      showDetail('SHARED LIBRARY RECORD', content);
+    }, 'shared-record-card');
+    card.append(badge(labels[recordKind], 'neutral'), node('strong', '', title), node('span', 'small muted', [record.candidate_id, record.context_id, record.source_id].filter(Boolean).join(' · ')));
+    list.append(card);
+  }
+  if (!records.length) list.append(node('p', 'muted', 'No shared records match this search.'));
+  if (shown.length < records.length) list.append(button('Show more records', () => renderSharedRecords(limit + 50), 'button shared-record-more'));
 }
 async function loadSources() {
   const projectId = state.project?.id; if (!projectId) return; const data = await api(`/api/projects/${encodeURIComponent(projectId)}/sources`);
@@ -860,9 +952,9 @@ async function previewEvidence(reference) {
     const actions = node('div', 'detail-actions preview-actions');
     let fileUrl = null;
     if (result.file_url && result.source_id) {
-      const candidate = new URL(result.file_url, location.href);
+      const candidate = LanMIntegration.localApiUrl(result.file_url, location.origin, integration.prefix);
       const expectedPath = `/api/projects/${encodeURIComponent(projectId)}/sources/${encodeURIComponent(result.source_id)}/file`;
-      if (candidate.origin === location.origin && candidate.pathname === expectedPath && !candidate.search && !candidate.hash) fileUrl = candidate.href;
+      if (candidate?.path === expectedPath) fileUrl = candidate.href;
     }
     const canEmbed = fileUrl && ['pdf', 'image'].includes(result.preview_kind);
     if (canEmbed || safeUrl(result.url)) {
@@ -962,12 +1054,16 @@ function sourceReader(source, projectId = state.project.id, autoRead = false) {
 
 function bindEvents() {
   $$('[data-close-dialog]').forEach(item => item.addEventListener('click', () => item.closest('dialog').close()));
+  $$('dialog').forEach(dialog => dialog.addEventListener('close', syncEmbedded));
   $$('dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close(); } }));
   $$('[data-tab]').forEach(item => item.addEventListener('click', () => goTab(item.dataset.tab)));
   $$('[data-go-tab]').forEach(item => item.addEventListener('click', () => goTab(item.dataset.goTab)));
   $$('[data-mode]').forEach(item => item.addEventListener('click', () => setMode(item.dataset.mode)));
+  $$('[data-research-view]').forEach(item => item.addEventListener('click', () => selectResearchView(item.dataset.researchView)));
+  $('#embedded-project-select').addEventListener('change', event => selectProject(event.target.value));
+  $('#embedded-new-project').addEventListener('click', () => $('#new-project').click());
   $$('[data-prompt]').forEach(item => item.addEventListener('click', () => { $('#chat-input').value = item.dataset.prompt; $('#chat-input').focus(); }));
-  $('#new-project').addEventListener('click', () => { if (state.job) return toast('Finish or stop the active conversation before creating another project.'); $('#project-form').reset(); $('#new-target').value = 'Nd'; $('#new-competitor').value = 'La'; showDialog('#project-dialog'); });
+  $('#new-project').addEventListener('click', () => { if (researchBusy()) return toast('Finish or stop the active conversation before creating another project.'); $('#project-form').reset(); $('#new-target').value = 'Nd'; $('#new-competitor').value = 'La'; showDialog('#project-dialog'); });
   $('#welcome-create').addEventListener('click', () => $('#new-project').click());
   $('#project-form').addEventListener('submit', event => {
     event.preventDefault(); const form = event.currentTarget; formError(form);
@@ -1004,20 +1100,28 @@ function bindEvents() {
   $('#add-source').addEventListener('click', () => { $('#source-form').reset(); showDialog('#source-dialog'); });
   $('#search-pubmed').addEventListener('click', openPubmedSearch);
   $('#open-handbook').addEventListener('click', () => openHandbook());
+  $('#refresh-shared-records').addEventListener('click', event => busy(event.currentTarget, loadSharedRecords));
+  $('#shared-record-search').addEventListener('input', () => renderSharedRecords());
+  $('#shared-record-kind').addEventListener('change', () => renderSharedRecords());
   $('#source-form').addEventListener('submit', event => { event.preventDefault(); const form = event.currentTarget; formError(form); busy($('[type=submit]', form), async () => { const data = Object.fromEntries(new FormData(form)); await api(`/api/projects/${encodeURIComponent(state.project.id)}/sources`, {method: 'POST', body: data}); $('#source-dialog').close(); await loadSources(); toast('Source evidence archived.'); }, message => formError(form, message)); });
 }
 
 async function initialize() {
+  initializeEmbedding();
   for (const element of metals) { for (const select of [$('#new-target'), $('#new-competitor')]) { const option = node('option', '', element); option.value = element; select.append(option); } }
   const metrics = ['collected_target_kg_per_l_cycle', 'purity_fraction', 'recovery_fraction', 'cycles_observed', 'cycle_time_hours', 'working_capacity_kg_per_l'];
   for (const key of metrics) { const [labelText, unit] = fieldInfo[key]; const label = node('label', 'field', labelText); const input = node('input'); input.type = 'number'; input.step = 'any'; input.min = '0'; if (key.endsWith('_fraction')) input.max = '1'; input.name = key; input.dataset.metric = key; input.placeholder = 'Not measured'; label.append(node('small', '', unit), input); $('#experiment-metrics').append(label); }
   bindEvents();
   const results = await Promise.allSettled([loadStatus(), loadProjects(), loadMethods()]);
   if (results[1].status === 'rejected') { showGlobalError(results[1].reason.message); $('#welcome').hidden = false; }
-  else if (state.projects.length) { let saved; try { saved = localStorage.getItem('lanm-project'); } catch {} await selectProject(state.projects.find(item => item.id === saved)?.id || state.projects[0].id); }
+  else if (state.projects.length) { let saved; try { saved = localStorage.getItem(projectStorageKey); } catch {} await selectProject(state.pendingSelection?.projectId || state.projects.find(item => item.id === saved)?.id || state.projects[0].id); }
   else $('#welcome').hidden = false;
   if (results[0].status === 'rejected') { $('#runtime-label').textContent = 'Connection unavailable'; $('#runtime-description').textContent = 'Local service could not be reached'; }
   if (results[2].status === 'rejected') replace($('#method-list'), node('p', 'muted small', 'Method registry unavailable: ' + results[2].reason.message));
+  state.initialized = true;
+  const pendingSelection = state.pendingSelection; state.pendingSelection = null;
+  if (pendingSelection) await applyResearchSelection(pendingSelection);
+  syncEmbedded();
 }
 
 initialize().catch(error => showGlobalError(error.message));
